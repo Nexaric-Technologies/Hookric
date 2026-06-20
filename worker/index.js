@@ -1,4 +1,4 @@
-// Hookrick (by nexaric) — Cloudflare Worker entry point.
+// HookRick (by NeXaric) — Cloudflare Worker entry point.
 //
 // Routes:
 //   /r/hook-agent/:endpointId      → Agents SDK DO (hook-agent URL shape)

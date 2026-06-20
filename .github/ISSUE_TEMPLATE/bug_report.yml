@@ -1,0 +1,95 @@
+name: Bug report
+description: Report a bug in HookRick
+title: "[bug]: "
+labels: ["bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in the template
+        below. **Do not paste real webhook bodies** — they may contain secrets.
+
+  - type: input
+    id: endpoint-id
+    attributes:
+      label: Endpoint ID (8 chars, visible in your URL bar)
+      description: The endpoint ID you were sending to when you saw the bug.
+      placeholder: "e.g. aB3xY9Zp"
+    validations:
+      required: false
+
+  - type: input
+    id: url
+    attributes:
+      label: Where you saw the bug
+      description: Production URL (hookrick.pages.dev), local (localhost:5173), or self-hosted.
+      placeholder: "https://hookrick.pages.dev"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser + version were you using?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Brave
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser version
+      placeholder: "120.0.6099.130"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - iOS
+        - Android
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, and what happened?
+      placeholder: |
+        1. Open the site
+        2. Copy endpoint ID aB3xY9Zp
+        3. Run `curl -X POST ... -d '...'`
+        4. See error X
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to see instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: Screenshots, console output, network panel traces. Strip secrets.
+    validations:
+      required: false

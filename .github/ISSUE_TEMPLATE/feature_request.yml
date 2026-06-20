@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest a feature for HookRick
+title: "[feat]: "
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        HookRick is a debugging tool. Feature requests that improve the
+        common debugging flows (webhook author, QA, dev tool) are most
+        likely to be picked up.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is the problem you're trying to solve?
+      placeholder: "When I get a 200 from a webhook, I have to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed solution
+      description: How would you like HookRick to behave?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you've tried. Tools that already do this.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Who else would benefit?
+      options:
+        - Just me
+        - My team
+        - The wider webhook-debugging community
+        - Tool integrators (n8n / Zapier / Make / Shopify / Stripe)
+    validations:
+      required: true

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: NeXaric website
+    url: https://nexaric.com
+    about: The team behind HookRick
+  - name: Security disclosure
+    url: mailto:security@nexaric.com
+    about: Email us privately for security issues. Do not file them as public issues.

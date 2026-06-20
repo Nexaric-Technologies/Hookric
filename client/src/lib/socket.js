@@ -42,8 +42,6 @@ function ensureClient(endpointId) {
     return null;
   }
 
-  console.log('[hookrick] connecting to', url);
-
   client = new AgentClient({
     agent: 'HookAgent',
     name: endpointId,
@@ -51,7 +49,6 @@ function ensureClient(endpointId) {
   });
 
   client.addEventListener('open', () => {
-    console.log('[hookrick] connected to', url);
     try { client.send(JSON.stringify({ type: 'join', endpointId })); } catch { /* not ready */ }
     lastConnectHandler?.();
   });

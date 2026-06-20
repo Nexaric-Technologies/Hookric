@@ -1,4 +1,4 @@
-// Hookrick (by nexaric) capture server
+// HookRick (by NeXaric) capture server
 // - Captures every request under /r/:endpointId
 // - Broadcasts parsed request to subscribers via Socket.IO
 // - Applies user-defined response (status, headers, body) when configured

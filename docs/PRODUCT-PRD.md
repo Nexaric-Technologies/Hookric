@@ -1,8 +1,11 @@
 # Product Requirements Document (PRD)
 
+> Historical product spec. For the user-facing overview see [`docs/PRODUCT.md`](./PRODUCT.md).
+> For implementation details see [`docs/ENGINEERING.md`](./ENGINEERING.md).
+
 ## Product Name
 
-Hookrick — by nexaric
+HookRick — by NeXaric
 
 ## Vision
 

@@ -1,4 +1,4 @@
-# Wrangler config for hookrick — by nexaric
+# Wrangler config for HookRick — by NeXaric
 # Deploy:  npx wrangler deploy worker/
 # Dev:     npx wrangler dev worker/
 
@@ -32,5 +32,5 @@ enabled = true
 # --- Vars (non-secret config; do NOT put secrets here) ---
 [vars]
 PRODUCT_NAME = "hookrick"
-PRODUCT_TAGLINE = "by nexaric"
+PRODUCT_TAGLINE = "by NeXaric"
 CAPTURE_HEADER = "X-Hookrick-Capture"
