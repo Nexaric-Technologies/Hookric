@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Globe, Server, Shield, KeyRound, Fingerprint, Clock, Layers,
-  MapPin, Smartphone, Cpu, Bot, CheckCircle2, XCircle, Hash, Calendar,
+  MapPin, Bot, CheckCircle2, XCircle, Calendar,
 } from 'lucide-react';
 import { formatBytes } from '../lib/format.js';
 
@@ -46,7 +46,7 @@ export default function ParsedAnalysis({ request }) {
   const analysis = request.analysis || {};
 
   return (
-    <div className="p-3 sm:p-4 space-y-3 text-sm">
+    <div className="px-4 pb-4 text-sm divide-y divide-border/60">
       {/* Network */}
       <Section icon={Globe} title="Network">
         <KV k="Method" v={request.method} badge={methodBadgeClass(request.method)} />
@@ -98,7 +98,7 @@ export default function ParsedAnalysis({ request }) {
         <KV k="Detected" v={ua.detected} />
         <KV k="Bot" v={ua.bot ? 'likely' : 'no'} badge={ua.bot ? 'method-put' : 'method-get'} icon={ua.bot ? Bot : CheckCircle2} />
         {ua.raw ? (
-          <details className="mt-1.5 pt-1.5 border-t border-border/60">
+          <details className="pt-1.5 mt-1.5 border-t border-border/60">
             <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
               Raw UA string
             </summary>
@@ -126,7 +126,7 @@ export default function ParsedAnalysis({ request }) {
                 <KV k="JWT" v={auth.bearer.claims ? 'yes' : 'no'} />
                 {auth.bearer.expires ? <KV k="JWT expires" v={auth.bearer.expires} /> : null}
                 {auth.bearer.claims ? (
-                  <details className="mt-1.5 pt-1.5 border-t border-border/60">
+                  <details className="pt-1.5 mt-1.5 border-t border-border/60">
                     <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
                       JWT claims
                     </summary>
@@ -185,7 +185,7 @@ export default function ParsedAnalysis({ request }) {
             <KV k="JSON type" v={analysis.jsonShape.type} />
             {analysis.jsonShape.totalKeys ? <KV k="Total keys" v={String(analysis.jsonShape.totalKeys)} /> : null}
             {analysis.jsonShape.fields?.length ? (
-              <details className="mt-1.5 pt-1.5 border-t border-border/60">
+              <details className="pt-1.5 mt-1.5 border-t border-border/60">
                 <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
                   JSON shape ({analysis.jsonShape.fields.length} field{analysis.jsonShape.fields.length === 1 ? '' : 's'})
                 </summary>
@@ -203,9 +203,9 @@ export default function ParsedAnalysis({ request }) {
         ) : null}
       </Section>
 
-      {/* Timeline */}
-      <Section icon={Clock} title="Timeline">
-        <ul className="space-y-1.5 text-[12px]">
+      {/* Timeline (last — no bottom divider) */}
+      <Section icon={Clock} title="Timeline" last>
+        <ul className="space-y-1 text-[12px]">
           {(request.timeline || []).map((t, i) => (
             <li key={i} className="flex items-center gap-2 font-mono">
               <span className="text-muted-foreground w-12 tabular-nums shrink-0">{t.ms}ms</span>
@@ -213,7 +213,7 @@ export default function ParsedAnalysis({ request }) {
             </li>
           ))}
         </ul>
-        <div className="mt-2.5 pt-2 border-t border-border/60 text-[11px] text-muted-foreground inline-flex items-center gap-1.5 tabular-nums">
+        <div className="pt-2 mt-2 border-t border-border/60 text-[11px] text-muted-foreground inline-flex items-center gap-1.5 tabular-nums">
           <Calendar className="h-3 w-3" />
           Total processing: <span className="text-foreground/90 font-mono">{request.processingMs ?? 0}ms</span>
         </div>
@@ -224,14 +224,20 @@ export default function ParsedAnalysis({ request }) {
 
 // Sub-components -------------------------------------------------------
 
+// Inner sections live inside the outer "Parsed analysis" panel. They
+// render as flat, divider-separated blocks (no nested card chrome) so
+// the panel itself is the only card — no double borders, no extra
+// padding stacking, no overlap with the grid.
 function Section({ icon: Icon, title, children }) {
   return (
-    <section className="card p-3">
-      <header className="flex items-center gap-2 mb-2.5 pb-2 border-b border-border/60">
+    <section className="py-3 first:pt-0 last:pb-0">
+      <header className="flex items-center gap-1.5 mb-2">
         <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
-        <h3 className="text-sm font-semibold text-foreground leading-none">{title}</h3>
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground leading-none">
+          {title}
+        </h3>
       </header>
-      <div className="space-y-1.5">{children}</div>
+      <div className="space-y-1">{children}</div>
     </section>
   );
 }
