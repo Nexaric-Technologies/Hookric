@@ -1,18 +1,23 @@
 // Hookrick (by nexaric) — Cloudflare Worker entry point.
 //
 // Routes:
-//   GET/POST/PUT/PATCH/DELETE  /r/:endpointId  →  forward to HookAgent DO
-//   GET                         /healthz         →  { ok: true, ts }
-//   *                           (fallback)       →  404 JSON
+//   /r/hook-agent/:endpointId      → Agents SDK DO (hook-agent URL shape)
+//   /healthz                         → { ok: true, ts }
+//   *                                → 404 JSON
 //
-// The HookAgent (./hook-agent.js) is re-exported so Wrangler's class
-// discovery can find it via wrangler.toml's `class_name = "HookAgent"`.
+// We use `routeAgentRequest` from the `agents` SDK so the SDK can
+// handle the WebSocket upgrade handshake properly. The binding
+// HOOK_AGENT (class HookAgent) is auto-discovered; its kebab-case
+// name "hook-agent" is what appears in the URL.
+//
+// The user-facing endpoint id is the DO instance name, so the
+// generated webhook URL is /r/hook-agent/<id> — see README for
+// the Vite/Express dev path that stays at /r/<id>.
 
 import { HookAgent } from './hook-agent.js';
+import { routeAgentRequest } from 'agents';
 
 export { HookAgent };
-
-const ROUTE_R = /^\/r\/([a-z0-9]{4,32})(\/.*)?$/i;
 
 export default {
   async fetch(request, env, ctx) {
@@ -39,21 +44,29 @@ export default {
       );
     }
 
-    // Capture route — forward to the per-endpoint Durable Object.
-    const match = pathname.match(ROUTE_R);
-    if (match) {
-      const endpointId = match[1];
-      const id = env.HOOK_AGENT.idFromName(endpointId);
-      const stub = env.HOOK_AGENT.get(id);
-      return stub.fetch(request);
-    }
+    // Capture route — let the Agents SDK route it. `prefix: "r"` so
+    // the URL stays /r/hook-agent/<endpointId> instead of the default
+    // /agents/hook-agent/<endpointId>. The SDK handles both regular
+    // HTTP and WebSocket upgrade requests here.
+    const routed = await routeAgentRequest(request, env, {
+      prefix: 'r',
+      cors: {
+        // Permissive CORS — webhook senders come from anywhere
+        allowOrigin: '*',
+        allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowHeaders: ['*'],
+        exposeHeaders: ['X-Hookrick-Capture'],
+        maxAge: 86400,
+      },
+    });
+    if (routed) return routed;
 
     // Fallthrough — JSON 404 so curl/Postman get a clear answer.
     return new Response(
       JSON.stringify({
         ok: false,
         error: 'not found',
-        hint: 'POST to /r/<your-endpoint-id> to capture a webhook.',
+        hint: 'POST to /r/hook-agent/<your-endpoint-id> to capture a webhook.',
       }),
       {
         status: 404,

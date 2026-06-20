@@ -3,7 +3,7 @@
 // builder config.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { generateId } from './format.js';
-import { joinRoom, onNewRequest, configureResponse, isConnected } from './socket.js';
+import { joinRoom, onNewRequest, configureResponse, isConnected, onReconnect } from './socket.js';
 import {
   lsLoad, lsSave, lsClear,
   idbLoadAll, idbSave, idbClear, idbIsAvailable,
@@ -127,27 +127,33 @@ export function useWebhookStore() {
         return next;
       });
     });
+
+    // Re-push the response config after every (re)connect so a network
+    // blip doesn't drop the user's mock response.
+    const pushConfig = () => {
+      if (responseConfig.enabled) {
+        configureResponse(endpointId, {
+          status: responseConfig.status,
+          headers: responseConfig.headers,
+          body: responseConfig.body,
+        });
+      } else {
+        configureResponse(endpointId, null);
+      }
+    };
+    onReconnect(pushConfig);
+
+    // Push immediately on mount too.
+    pushConfig();
+
     return off;
-  }, [endpointId, storageMode, idbReady]);
+  }, [endpointId, storageMode, idbReady, responseConfig]);
 
   // Connection state poll (cheap)
   useEffect(() => {
     const t = setInterval(() => setConnected(isConnected()), 1500);
     return () => clearInterval(t);
   }, []);
-
-  // Push response config to server when it changes
-  useEffect(() => {
-    if (responseConfig.enabled) {
-      configureResponse(endpointId, {
-        status: responseConfig.status,
-        headers: responseConfig.headers,
-        body: responseConfig.body,
-      });
-    } else {
-      configureResponse(endpointId, null);
-    }
-  }, [endpointId, responseConfig]);
 
   const active = useMemo(
     () => requests.find((r) => r.id === activeId) || requests[0] || null,

@@ -1,17 +1,19 @@
 // HookAgent — Agents SDK Durable Object, one instance per endpointId.
 //
-// Responsibilities (port of server/src/index.js capture logic to Workers):
+// Responsibilities:
 //   - Hold WebSocket subscribers for live fan-out
 //   - Hold the user's response-builder config (in memory, per spec)
-//   - On HTTP request under /r/:id: parse, capture, broadcast, reply
+//   - On HTTP request under /r/hook-agent/:id: parse, capture, broadcast, reply
 //
 // Wire protocol (client → server, JSON over WebSocket):
-//   { "type": "join",                 "endpointId": "<id>" }
-//   { "type": "leave",                "endpointId": "<id>" }
-//   { "type": "response:configure",   "endpointId": "<id>", "config": {...} }
+//   { "type": "response:configure", "config": {...} }
 //
 // Wire protocol (server → client):
 //   { "type": "request:new", "payload": <captured> }
+//
+// URL routing is handled by `routeAgentRequest` in worker/index.js
+// using the prefix "r" and the binding's kebab-case name "hook-agent".
+// Final URL shape: /r/hook-agent/<endpointId>.
 
 import { Agent } from 'agents';
 import { WebhookAnalyzer } from './analyzer.js';
@@ -47,21 +49,15 @@ const KNOWN_AGENTS = [
 ];
 
 export class HookAgent extends Agent {
-  // In-memory state — per the user's choice, no SQLite persistence here.
-  // Lost on DO eviction; that's fine for an MVP "live capture" tool.
-  initialState() {
-    return {
-      subscribers: 0, // counters only — actual WebSocket set lives on this
-      responseConfig: null,
-    };
-  }
+  // In-memory state only — per the user's choice, no SQLite persistence.
+  // Class fields (not state) since the SDK state API is for cross-restart
+  // persistence; we want a clean slate on every DO cold start.
+  responseConfig = null;
 
   // ---- WebSocket lifecycle ---------------------------------------------
 
-  async onConnect(conn) {
-    // The client tells us which endpointId it wants to receive for. We
-    // accept any subscription — the DO is already keyed by endpointId, so
-    // the client can only subscribe to its own DO anyway.
+  async onConnect(conn, ctx) {
+    // Accept the WebSocket. The SDK already wired the upgrade.
     try {
       conn.accept?.();
     } catch {
@@ -72,15 +68,15 @@ export class HookAgent extends Agent {
   async onMessage(conn, raw) {
     let msg;
     try {
-      msg = JSON.parse(typeof raw === 'string' ? raw : raw.toString('utf8'));
+      const text = typeof raw === 'string' ? raw : new TextDecoder().decode(raw);
+      msg = JSON.parse(text);
     } catch {
       return;
     }
     if (!msg || typeof msg !== 'object') return;
 
     if (msg.type === 'response:configure') {
-      // Per-endpoint single-rule store — mirrors server/src/index.js:73-79
-      this.setState({ ...this.state, responseConfig: msg.config || null });
+      this.responseConfig = msg.config || null;
       return;
     }
 
@@ -89,22 +85,29 @@ export class HookAgent extends Agent {
     // a small ack so legacy clients don't hang.
     if (msg.type === 'join' || msg.type === 'leave') {
       try {
-        conn.send?.(JSON.stringify({ type: msg.type, ok: true }));
+        conn.send(JSON.stringify({ type: msg.type, ok: true }));
       } catch { /* socket closed */ }
     }
   }
 
-  async onClose(conn) {
-    // SDK tracks the connection set for us; nothing to clean up here.
+  async onClose(conn, code, reason, wasClean) {
+    // Nothing to clean up — SDK tracks the connection set.
   }
 
   async onError(conn, err) {
     console.error('[hookrick] ws error:', err?.message || err);
   }
 
-  // ---- HTTP capture route ----------------------------------------------
+  // ---- HTTP capture route (SDK calls fetch for non-WS requests) -------
 
-  async onRequest(request) {
+  async fetch(request) {
+    // WebSocket upgrades: defer to the partyserver base class which
+    // handles the upgrade handshake, onConnect, and connection tracking.
+    // If we intercepted WS here, the client would never get a socket.
+    if (request.headers.get('Upgrade')?.toLowerCase() === 'websocket') {
+      return super.fetch(request);
+    }
+
     // CORS preflight — webhook senders often probe OPTIONS first.
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -135,9 +138,8 @@ export class HookAgent extends Agent {
     this.broadcast(JSON.stringify({ type: 'request:new', payload: captured }));
 
     // Apply user-defined response if one was configured.
-    const cfg = this.state?.responseConfig;
-    if (cfg) {
-      return applyConfiguredResponse(cfg);
+    if (this.responseConfig) {
+      return applyConfiguredResponse(this.responseConfig);
     }
 
     // Default success response.
@@ -161,7 +163,7 @@ export class HookAgent extends Agent {
   }
 }
 
-// ---- Pure helpers (no DO instance needed) --------------------------------
+// ---- Pure helpers ---------------------------------------------------------
 
 function corsHeaders() {
   return {
@@ -196,7 +198,10 @@ function applyConfiguredResponse(cfg) {
 
 async function captureRequest(request) {
   const url = new URL(request.url);
-  const endpointId = url.pathname.split('/')[2] || '';
+  // URL shape: /r/hook-agent/<endpointId> — the last non-empty segment
+  // is the id. We don't care about intermediate segments.
+  const segs = url.pathname.split('/').filter(Boolean);
+  const endpointId = segs[segs.length - 1] || '';
   const startedAt = Date.now();
   const contentType = (request.headers.get('content-type') || '').toLowerCase();
   const ua = request.headers.get('user-agent') || '';
@@ -221,7 +226,6 @@ async function captureRequest(request) {
         if (typeof v === 'string') {
           formFields[k] = v;
         } else {
-          // File entry
           files.push({
             fieldName: v.name || k,
             originalName: v.name || k,
@@ -238,7 +242,6 @@ async function captureRequest(request) {
       parsedBody = { ...formFields, _files: files.map((f) => f.originalName) };
       bodyKind = 'multipart';
     } else {
-      // Read the raw bytes once; downstream branches re-interpret them.
       const buf = await request.arrayBuffer();
       rawBytes = new Uint8Array(buf);
       bodyText = new TextDecoder('utf-8', { fatal: false }).decode(rawBytes);
@@ -282,7 +285,7 @@ async function captureRequest(request) {
     path: url.pathname,
     host: headers.host || url.host,
     protocol: url.protocol.replace(':', ''),
-    httpVersion: 'HTTP/1.1', // Workers normalises this
+    httpVersion: 'HTTP/1.1',
     secure: url.protocol === 'https:',
     ip: {
       remote: ip,
@@ -327,7 +330,7 @@ async function captureRequest(request) {
     signatures: detectWebhookSignature(headers),
     userAgent: {
       raw: ua,
-      browser: parseBrowser(ua),
+      browser: null,
       browserVersion: null,
       os: null,
       osVersion: null,
@@ -342,8 +345,6 @@ async function captureRequest(request) {
   captured.analysis = WebhookAnalyzer.analyze(captured);
   return captured;
 }
-
-// ---- Body / header helpers (port of server/src/index.js:100-195) --------
 
 function safeJsonParse(text) {
   if (typeof text !== 'string' || !text.length) return null;
@@ -425,13 +426,6 @@ function maskHeaderValue(name, value) {
 
 function lowercaseKeys(obj) {
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]));
-}
-
-function parseBrowser(_ua) {
-  // Lightweight UA parser (Workers has no ua-parser-js). The detail-rich
-  // fields remain null; the "detected" + "bot" fields cover the common
-  // automation tools we care about.
-  return null;
 }
 
 function detectAgent(ua) {
