@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Copy, Check, QrCode, RotateCcw, Link2 } from 'lucide-react';
 import { copyToClipboard, generateId } from '../lib/format.js';
+import { apiBase } from '../lib/apiBase.js';
 
 const ENDPOINT_KEY = 'hookrick:v1:endpointId';
 
@@ -10,8 +11,12 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [qrData, setQrData] = useState('');
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const url = `${origin}/r/${endpointId}`;
+  // In production the Worker lives on a different host than the page.
+  // apiBase() resolves the right origin — set via VITE_HOOKRICK_API at
+  // build time, or fall back to same-origin in dev.
+  const base = apiBase();
+  const url = `${base}/r/hook-agent/${endpointId}`;
+  const urlPrefix = `${base}/r/hook-agent/`;
 
   // Theme-aware QR colors
   useEffect(() => {
@@ -68,7 +73,7 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
 
       <div className="flex flex-col sm:flex-row items-stretch gap-2">
         <div className="flex-1 flex items-center gap-1.5 px-3 h-10 rounded-md border border-input bg-muted/40 font-mono text-[13px] overflow-hidden min-w-0">
-          <span className="text-muted-foreground shrink-0 truncate">{origin}/r/</span>
+          <span className="text-muted-foreground shrink-0 truncate">{urlPrefix}</span>
           <span className="truncate text-foreground">{endpointId}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
