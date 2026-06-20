@@ -16,6 +16,7 @@
 // Final URL shape: /r/hook-agent/<endpointId>.
 
 import { Agent } from 'agents';
+import { UAParser } from 'ua-parser-js';
 import { WebhookAnalyzer } from './analyzer.js';
 
 const SENSITIVE_HEADERS = new Set([
@@ -275,6 +276,7 @@ async function captureRequest(request) {
   const receivedAt = new Date().toISOString();
 
   const ip = pickClientIp(headers);
+  const cf = request.cf || null;
   const captured = {
     id: requestId,
     endpointId,
@@ -291,16 +293,25 @@ async function captureRequest(request) {
       remote: ip,
       xForwardedFor: headers['x-forwarded-for'] || null,
       realIp: headers['x-real-ip'] || null,
-      country: headers['cf-ipcountry'] || null,
-      region: headers['cf-region'] || null,
-      city: headers['cf-ipcity'] || null,
-      asn: null,
-      isp: null,
+      // Cloudflare request.cf gives us the full geo block. Headers are a
+      // fallback for non-CF edges or proxied origins.
+      country: cf?.country || headers['cf-ipcountry'] || null,
+      region: cf?.region || headers['cf-region'] || null,
+      city: cf?.city || headers['cf-ipcity'] || null,
+      postalCode: cf?.postalCode || null,
+      continent: cf?.continent || null,
+      latitude: cf?.latitude || null,
+      longitude: cf?.longitude || null,
+      asn: cf?.asn ? String(cf.asn) : null,
+      isp: cf?.asOrganization || null,
+      colo: cf?.colo || null,
+      httpProtocol: cf?.httpProtocol || null,
     },
     tls: {
       secure: url.protocol === 'https:',
-      version: headers['x-tls-version'] || null,
-      cipher: headers['x-tls-cipher'] || null,
+      version: cf?.tlsVersion || headers['x-tls-version'] || null,
+      cipher: cf?.tlsCipher || headers['x-tls-cipher'] || null,
+      clientAuth: cf?.clientAuth?.certPresented || false,
     },
     headers,
     headersMasked: Object.fromEntries(
@@ -328,17 +339,7 @@ async function captureRequest(request) {
       jwt: decodeBearer(headers.authorization)?.claims || null,
     },
     signatures: detectWebhookSignature(headers),
-    userAgent: {
-      raw: ua,
-      browser: null,
-      browserVersion: null,
-      os: null,
-      osVersion: null,
-      device: null,
-      deviceType: null,
-      bot: /bot|spider|crawl|headless/i.test(ua),
-      detected: detectAgent(ua),
-    },
+    userAgent: parseUserAgent(ua),
     timeline: buildTimeline(startedAt),
   };
 
@@ -413,9 +414,15 @@ function parseCookies(cookieHeader) {
 }
 
 function pickClientIp(headers) {
-  const xff = headers['x-forwarded-for'];
-  if (typeof xff === 'string' && xff.length) return xff.split(',')[0].trim();
-  return headers['x-real-ip'] || headers['cf-connecting-ip'] || '';
+  // Cloudflare sets cf-connecting-ip to the original client IP (not the
+  // edge proxy). X-Forwarded-For is the next-best fallback for non-CF
+  // edges and proxied setups.
+  return (
+    headers['cf-connecting-ip'] ||
+    (typeof headers['x-forwarded-for'] === 'string' && headers['x-forwarded-for'].split(',')[0].trim()) ||
+    headers['x-real-ip'] ||
+    ''
+  );
 }
 
 function maskHeaderValue(name, value) {
@@ -426,6 +433,41 @@ function maskHeaderValue(name, value) {
 
 function lowercaseKeys(obj) {
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]));
+}
+
+// User agent parsing via ua-parser-js (MIT, works on Workers).
+// Falls back to regex detection for known automation tools when the
+// library returns nothing.
+function parseUserAgent(uaString) {
+  if (!uaString) {
+    return {
+      raw: '',
+      browser: null, browserVersion: null,
+      engine: null, engineVersion: null,
+      os: null, osVersion: null,
+      device: null, deviceType: null, deviceVendor: null,
+      bot: false,
+      detected: 'unknown',
+    };
+  }
+  const parsed = new UAParser(uaString).getResult();
+  const bot =
+    parsed.device?.type === 'mobile' ? false :
+    !!parsed.bot || /bot|spider|crawl|headless/i.test(uaString);
+  return {
+    raw: uaString,
+    browser: parsed.browser?.name || null,
+    browserVersion: parsed.browser?.version || null,
+    engine: parsed.engine?.name || null,
+    engineVersion: parsed.engine?.version || null,
+    os: parsed.os?.name || null,
+    osVersion: parsed.os?.version || null,
+    device: parsed.device?.model || null,
+    deviceType: parsed.device?.type || null,
+    deviceVendor: parsed.device?.vendor || null,
+    bot,
+    detected: detectAgent(uaString),
+  };
 }
 
 function detectAgent(ua) {
