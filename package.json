@@ -1,17 +1,23 @@
 {
-  "name": "webhookmirror",
+  "name": "hookrick",
   "version": "1.0.0",
-  "description": "Instant webhook inspection without signup or database",
+  "description": "Hookrick by nexaric — instant webhook inspection without signup or database",
   "private": true,
   "scripts": {
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "dev": "concurrently -k -n SERVER,CLIENT -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
+    "dev:worker": "wrangler dev worker/",
     "build": "cd client && npm run build",
-    "start": "cd server && npm start"
+    "start": "cd server && npm start",
+    "deploy:client": "cd client && npm run build && wrangler pages deploy dist --project-name hookrick",
+    "deploy:worker": "wrangler deploy worker/",
+    "deploy": "npm run deploy:worker && npm run deploy:client"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "wrangler": "^4.0.0"
   }
 }
+

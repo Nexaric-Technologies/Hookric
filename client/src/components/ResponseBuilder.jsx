@@ -41,7 +41,7 @@ export default function ResponseBuilder({ config, onChange }) {
       <button
         onClick={() => setOpen(true)}
         className="btn-outline btn-sm shrink-0"
-        title="Configure the response nextcatch sends back"
+        title="Configure the response hookrick sends back"
       >
         <Code2 className="h-4 w-4" />
         <span className="hidden sm:inline">Response</span>

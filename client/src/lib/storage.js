@@ -2,7 +2,7 @@
 // - LocalStorage is the default (5 MB ceiling).
 // - IndexedDB is opted in via the UI and supports much larger payloads.
 
-const LS_PREFIX = 'nextcatch:v1:';
+const LS_PREFIX = 'hookrick:v1:';
 
 export function lsLoad(endpointId) {
   try {
@@ -49,7 +49,7 @@ function trimToLocalStorage(requests) {
 
 // ---- IndexedDB (lazy-open) ----
 
-const DB_NAME = 'nextcatch';
+const DB_NAME = 'hookrick';
 const DB_VERSION = 1;
 const STORE = 'requests';
 

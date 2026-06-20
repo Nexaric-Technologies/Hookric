@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { Copy, Check, QrCode, RotateCcw, Link2 } from 'lucide-react';
 import { copyToClipboard, generateId } from '../lib/format.js';
 
-const ENDPOINT_KEY = 'nextcatch:v1:endpointId';
+const ENDPOINT_KEY = 'hookrick:v1:endpointId';
 
 export default function EndpointCard({ endpointId, onRegenerate, connected }) {
   const [copied, setCopied] = useState(false);

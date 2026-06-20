@@ -2,7 +2,7 @@
 
 ## Product Name
 
-WebhookMirror
+Hookrick — by nexaric
 
 ## Vision
 
@@ -42,7 +42,7 @@ User visits homepage.
 
 System automatically generates:
 
-https://webhookmirror.com/r/9ks8x2ma
+https://hookrick.com/r/9ks8x2ma
 
 ### Step 3
 
@@ -511,7 +511,8 @@ Storage
 
 Deployment
 
-* Azure App Service
-* Azure Container Apps
+* Cloudflare Workers + Durable Objects (recommended)
+* Cloudflare Pages (static client)
+* Wrangler CLI for builds & deploys
 
 No database required for MVP.

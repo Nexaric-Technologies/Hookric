@@ -66,9 +66,9 @@ export default function RequestDetails({ request, allRequests }) {
 
 function RequestHeader({ request, allRequests }) {
   const onExport = (kind) => {
-    if (kind === 'json') downloadFile(`nextcatch-${Date.now()}.json`, JSON.stringify(allRequests, null, 2), 'application/json');
-    else if (kind === 'csv') downloadFile(`nextcatch-${Date.now()}.csv`, toCsv(allRequests), 'text/csv');
-    else if (kind === 'txt') downloadFile(`nextcatch-${Date.now()}.txt`, toTxt(allRequests), 'text/plain');
+    if (kind === 'json') downloadFile(`hookrick-${Date.now()}.json`, JSON.stringify(allRequests, null, 2), 'application/json');
+    else if (kind === 'csv') downloadFile(`hookrick-${Date.now()}.csv`, toCsv(allRequests), 'text/csv');
+    else if (kind === 'txt') downloadFile(`hookrick-${Date.now()}.txt`, toTxt(allRequests), 'text/plain');
   };
 
   return (

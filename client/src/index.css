@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   nextcatch — shadcn-style theming
+   hookrick — shadcn-style theming
    Tokens are HSL triplets (no `hsl(...)` wrapper) so Tailwind's
    `hsl(var(--x) / <alpha-value>)` mapping works.
 --------------------------------------------------------------------------- */

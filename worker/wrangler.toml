@@ -1,0 +1,36 @@
+# Wrangler config for hookrick — by nexaric
+# Deploy:  npx wrangler deploy worker/
+# Dev:     npx wrangler dev worker/
+
+name = "hookrick"
+main = "index.js"
+compatibility_date = "2025-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# One Durable Object per active endpointId, holding its WebSocket subscribers
+# and response-builder config in memory.
+[[durable_objects.bindings]]
+name = "HOOK_AGENT"
+class_name = "HookAgent"
+
+# Migrations: DO class registration. Re-run `wrangler deploy` after any
+# schema/state change and bump the tag.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["HookAgent"]
+
+# --- Custom domain (uncomment after adding hookrick.com to Cloudflare) ---
+# routes = [
+#   { pattern = "hookrick.com/r/*",       custom_domain = true },
+#   { pattern = "api.hookrick.com/r/*",   custom_domain = true },
+# ]
+
+# --- Observability (free on Workers) ---
+[observability]
+enabled = true
+
+# --- Vars (non-secret config; do NOT put secrets here) ---
+[vars]
+PRODUCT_NAME = "hookrick"
+PRODUCT_TAGLINE = "by nexaric"
+CAPTURE_HEADER = "X-Hookrick-Capture"

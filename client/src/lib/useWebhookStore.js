@@ -9,9 +9,9 @@ import {
   idbLoadAll, idbSave, idbClear, idbIsAvailable,
 } from './storage.js';
 
-const ENDPOINT_KEY = 'nextcatch:v1:endpointId';
-const THEME_KEY = 'nextcatch:v1:theme';
-const STORAGE_KEY = 'nextcatch:v1:storage';
+const ENDPOINT_KEY = 'hookrick:v1:endpointId';
+const THEME_KEY = 'hookrick:v1:theme';
+const STORAGE_KEY = 'hookrick:v1:storage';
 
 function loadEndpointId() {
   try {

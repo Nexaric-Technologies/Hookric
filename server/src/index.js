@@ -1,4 +1,4 @@
-// WebhookMirror capture server
+// Hookrick (by nexaric) capture server
 // - Captures every request under /r/:endpointId
 // - Broadcasts parsed request to subscribers via Socket.IO
 // - Applies user-defined response (status, headers, body) when configured
@@ -360,13 +360,13 @@ function captureHandler(req, res, next) {
     }
 
     // Default response
-    res.setHeader('X-Nextcatch-Capture', 'ok');
+    res.setHeader('X-Hookrick-Capture', 'ok');
     return res.status(200).json({
       success: true,
       requestId,
       endpointId,
       receivedAt,
-      message: 'Request captured. Open the nextcatch UI to inspect it.',
+      message: 'Request captured. Open the hookrick UI to inspect it.',
     });
   } catch (err) {
     next(err);
@@ -415,7 +415,7 @@ if (fs.existsSync(clientDist)) {
 // but include the error in the body for debugging.
 app.use((err, req, res, _next) => {
   // eslint-disable-next-line no-console
-  console.error('[webhookmirror] capture error:', err);
+  console.error('[hookrick] capture error:', err);
   res.status(200).json({
     success: false,
     error: err.message || 'capture failed',
@@ -425,5 +425,5 @@ app.use((err, req, res, _next) => {
 
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`[webhookmirror] capture server listening on :${PORT}`);
+  console.log(`[hookrick] capture server listening on :${PORT}`);
 });

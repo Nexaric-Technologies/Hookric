@@ -98,8 +98,8 @@ function Header({ onHelp, theme, setTheme, resolvedTheme }) {
             <Webhook className="h-4 w-4" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-[15px] font-display font-bold text-foreground tracking-tight">nextcatch</span>
-            <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-medium">webhook inspector</span>
+            <span className="text-[15px] font-display font-bold text-foreground tracking-tight">hookrick</span>
+            <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-medium">by nexaric</span>
           </div>
         </a>
 
@@ -157,7 +157,7 @@ function HelpModal({ onClose }) {
       >
         <div className="px-5 py-4 border-b border-border flex items-center gap-2 sticky top-0 bg-card z-10">
           <Sparkles className="h-4 w-4 text-primary" />
-          <h2 className="text-base font-display font-bold text-foreground flex-1">How nextcatch works</h2>
+          <h2 className="text-base font-display font-bold text-foreground flex-1">How hookrick works</h2>
           <button className="btn-ghost btn-icon-sm" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </button>
