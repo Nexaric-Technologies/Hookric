@@ -63,12 +63,12 @@ export default function App() {
             <RequestDetails request={store.active} allRequests={store.requests} />
           </div>
 
-          <div className={`card min-h-0 ${mobileView === 'analysis' ? '' : 'hidden md:block'}`}>
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+          <div className={`card min-h-0 flex flex-col ${mobileView === 'analysis' ? '' : 'hidden md:block'}`}>
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2 shrink-0">
               <Zap className="h-3.5 w-3.5 text-primary" />
               <span className="text-sm font-semibold text-foreground">Parsed analysis</span>
             </div>
-            <div className="max-h-full overflow-y-auto">
+            <div className="flex-1 min-h-0">
               <ParsedAnalysis request={store.active} />
             </div>
           </div>
