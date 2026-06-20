@@ -55,9 +55,9 @@ export default function ParsedAnalysis({ request }) {
         {/* Network */}
         <Section icon={Globe} title="Network">
           <KV k="Method" v={request.method} badge={methodBadgeClass(request.method)} />
-          <KV k="URL" v={request.url} mono />
-          <KV k="Path" v={request.path} mono />
-          <KV k="Host" v={request.host} mono />
+          <ScrollKV k="URL" v={request.url} />
+          <ScrollKV k="Path" v={request.path} />
+          <ScrollKV k="Host" v={request.host} />
           <KV
             k="Protocol"
             v={`${(request.protocol || '').toUpperCase()} · ${request.httpVersion || ''}${ip.httpProtocol ? ` · ${ip.httpProtocol}` : ''}`}
@@ -67,15 +67,15 @@ export default function ParsedAnalysis({ request }) {
 
         {/* IP & Geo */}
         <Section icon={MapPin} title="IP & location">
-          <KV k="Source IP" v={ip.remote} mono />
-          <KV k="X-Forwarded-For" v={ip.xForwardedFor} mono />
-          <KV k="Real IP" v={ip.realIp} mono />
+          <ScrollKV k="Source IP" v={ip.remote} />
+          <ScrollKV k="X-Forwarded-For" v={ip.xForwardedFor} />
+          <ScrollKV k="Real IP" v={ip.realIp} />
           <KV k="Country" v={ip.country} />
           <KV k="Region" v={ip.region} />
           <KV k="City" v={ip.city} />
-          <KV k="Postal" v={ip.postalCode} mono />
+          <ScrollKV k="Postal" v={ip.postalCode} />
           <KV k="Continent" v={ip.continent} />
-          <KV k="ASN" v={ip.asn} mono />
+          <ScrollKV k="ASN" v={ip.asn} />
           <KV k="ISP / Org" v={ip.isp} />
           <KV k="Edge colo" v={ip.colo} />
           <CoordRow ip={ip} />
@@ -84,8 +84,8 @@ export default function ParsedAnalysis({ request }) {
         {/* TLS */}
         <Section icon={Server} title="TLS">
           <KV k="Secure" v={request.tls?.secure ? 'yes' : 'no'} />
-          <KV k="Version" v={request.tls?.version || '—'} mono />
-          <KV k="Cipher" v={request.tls?.cipher || '—'} mono />
+          <ScrollKV k="Version" v={request.tls?.version || '—'} />
+          <ScrollKV k="Cipher" v={request.tls?.cipher || '—'} />
           <KV k="Client cert" v={request.tls?.clientAuth ? 'presented' : '—'} />
         </Section>
 
@@ -107,9 +107,9 @@ export default function ParsedAnalysis({ request }) {
               <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
                 Raw UA string
               </summary>
-              <div className="mt-1.5 text-[11px] text-foreground/80 font-mono break-all p-2 rounded-md border border-border bg-muted/40">
+              <ScrollBlock className="mt-1.5 font-mono text-[11px] text-foreground/80 p-2 rounded-md border border-border bg-muted/40 whitespace-pre">
                 {ua.raw}
-              </div>
+              </ScrollBlock>
             </details>
           ) : null}
         </Section>
@@ -135,9 +135,9 @@ export default function ParsedAnalysis({ request }) {
                       <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
                         JWT claims
                       </summary>
-                      <pre className="code mt-1.5 p-2 rounded-md border border-border bg-muted/40 max-h-40 overflow-auto text-[11px]">
+                      <ScrollBlock as="pre" className="code mt-1.5 p-2 rounded-md border border-border bg-muted/40 max-h-40 text-[11px]">
                         {JSON.stringify(auth.bearer.claims, null, 2)}
-                      </pre>
+                      </ScrollBlock>
                     </details>
                   ) : null}
                 </>
@@ -182,7 +182,7 @@ export default function ParsedAnalysis({ request }) {
         {/* Body */}
         <Section icon={Layers} title="Body analysis">
           <KV k="Kind" v={body.kind} badge={body.kind === 'json' ? 'method-post' : body.kind === 'multipart' ? 'method-patch' : null} />
-          <KV k="Content-Type" v={body.contentType || '—'} mono />
+          <ScrollKV k="Content-Type" v={body.contentType || '—'} />
           <KV k="Size" v={formatBytes(body.size || 0)} />
           {body.files?.length ? <KV k="Files" v={String(body.files.length)} /> : null}
           {analysis.jsonShape ? (
@@ -194,14 +194,14 @@ export default function ParsedAnalysis({ request }) {
                   <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
                     JSON shape ({analysis.jsonShape.fields.length} field{analysis.jsonShape.fields.length === 1 ? '' : 's'})
                   </summary>
-                  <ul className="mt-1.5 space-y-1 text-[11px] font-mono max-h-40 overflow-auto p-2 rounded-md border border-border bg-muted/40">
+                  <ScrollBlock as="ul" className="mt-1.5 space-y-1 text-[11px] font-mono max-h-40 p-2 rounded-md border border-border bg-muted/40">
                     {analysis.jsonShape.fields.slice(0, 50).map((f, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <span className="text-foreground/90 break-all">{f.path}</span>
-                        <span className="ml-auto text-muted-foreground shrink-0">{f.type}</span>
+                        <span className="text-foreground/90 whitespace-nowrap">{f.path}</span>
+                        <span className="ml-auto text-muted-foreground shrink-0 pl-2">{f.type}</span>
                       </li>
                     ))}
-                  </ul>
+                  </ScrollBlock>
                 </details>
               ) : null}
             </>
@@ -233,19 +233,22 @@ export default function ParsedAnalysis({ request }) {
 // Inner sections are framed boxes that live entirely inside the
 // "Parsed analysis" panel. They render as flat blocks with a thin
 // top divider between them — no nested card chrome, so the panel's
-// own border is the only outer container. The section block itself
-// owns its own padding so KV rows, details blocks, lists and code
-// all share the same left/right gutter.
+// own border is the only outer container. Each section is a
+// horizontal-scroll container: if a long URL, JSON path, or code
+// block is wider than the card, you can scroll the card content
+// sideways without breaking the page layout.
 function Section({ icon: Icon, title, children }) {
   return (
-    <section className="rounded-md border border-border/60 bg-card/40 overflow-hidden">
-      <header className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 bg-muted/30">
+    <section className="rounded-md border border-border/60 bg-card/40 overflow-hidden min-w-0">
+      <header className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 bg-muted/30 shrink-0">
         <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground leading-none">
           {title}
         </h3>
       </header>
-      <div className="px-3 py-2.5 space-y-1">{children}</div>
+      <div className="px-3 py-2.5 space-y-1 overflow-x-auto overflow-y-hidden">
+        {children}
+      </div>
     </section>
   );
 }
@@ -314,4 +317,53 @@ function methodBadgeClass(method) {
   const m = String(method).toLowerCase();
   if (['get', 'post', 'put', 'patch', 'delete'].includes(m)) return `method-${m}`;
   return 'method-other';
+}
+
+// ScrollKV: a KV row whose value is rendered in a horizontally
+// scrollable mini-region. The label stays put; the value sits in
+// a fixed-height scroll box that can pan sideways for long URLs,
+// ASN strings, UAs, header values, etc. Falls through to the
+// muted-dash placeholder if there's no value.
+function ScrollKV({ k, v }) {
+  if (v == null || v === '' || v === '—') {
+    return (
+      <div className="flex items-center gap-2 text-[12px] text-muted-foreground/60">
+        <span className="w-28 shrink-0">{k}</span>
+        <span className="text-[11px]">—</span>
+      </div>
+    );
+  }
+  const display = String(v);
+  return (
+    <div className="flex items-start gap-2 text-[12px]">
+      <span className="w-28 shrink-0 text-muted-foreground pt-1.5">{k}</span>
+      <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden max-h-7 rounded-sm border border-transparent hover:border-border/60 transition-colors">
+        <div className="font-mono text-[11.5px] text-foreground whitespace-nowrap px-1.5 py-1">
+          {display}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ScrollBlock: a horizontally scrollable container for wide
+// content (raw UA, JSON shape, JWT claims). The element is the
+// scroll surface itself; we use the browser's intrinsic sizing
+// (no inner wrapper) so HTML validity is preserved for <pre> /
+// <ul>. Long content overflows horizontally rather than wrapping.
+function ScrollBlock({ as: Tag = 'div', className = '', children, ...rest }) {
+  // For <pre> the content is text — whitespace is preserved by
+  // default and the pre grows to its content's intrinsic width.
+  // For <ul> we need to prevent the <li>s from wrapping so the
+  // list grows as wide as its widest item.
+  const extra = Tag === 'pre' || Tag === 'code'
+    ? 'min-w-max whitespace-pre'
+    : Tag === 'ul' || Tag === 'ol'
+    ? 'min-w-max [&>li]:flex [&>li]:flex-nowrap [&>li]:whitespace-nowrap'
+    : 'min-w-max';
+  return (
+    <Tag className={`overflow-x-auto overflow-y-auto ${extra} ${className}`} {...rest}>
+      {children}
+    </Tag>
+  );
 }
