@@ -389,23 +389,41 @@ function ResponseSheet({ children, onClose }) {
   }, [onClose]);
 
   return (
-    <>
+    <div
+      className="sheet-overlay"
+      onClick={onClose}
+      role="presentation"
+    >
+      {/*
+        Mobile (<md): bottom sheet, fixed to the bottom edge.
+        Desktop (md+): centered dialog card.
+
+        Two separate nodes — one per breakpoint — keeps the markup
+        honest. The overlay's flex center (see .sheet-overlay in
+        index.css) is reset to align-items: flex-end on mobile so
+        the sheet anchors to the bottom; on desktop, the dialog is
+        a normal flex child of the overlay and gets centered
+        automatically.
+      */}
       <div
-        className="sheet-overlay"
-        onClick={onClose}
-        role="presentation"
-      />
-      <div
-        className="sheet md:!inset-y-0 md:!right-0 md:!left-auto md:!bottom-auto md:!top-0 md:!rounded-none md:!border-l md:!w-[480px] md:!max-w-[90vw]"
+        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Mock response"
-        style={{
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
+        className="modal-card hidden md:flex card w-full max-w-xl max-h-[88vh] overflow-hidden flex-col rounded-lg border border-[var(--line)]"
       >
         {children}
       </div>
-    </>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mock response"
+        className="sheet md:hidden flex flex-col"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {children}
+      </div>
+    </div>
   );
 }

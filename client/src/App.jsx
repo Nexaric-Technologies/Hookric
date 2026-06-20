@@ -331,7 +331,7 @@ function HelpModal({ onClose }) {
   return (
     <div className="sheet-overlay" onClick={onClose} role="presentation">
       <div
-        className="card w-full max-w-xl max-h-[90vh] overflow-y-auto sm:!rounded-lg"
+        className="modal-card card w-full max-w-xl max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
