@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Power, Code2, ListPlus, X, Sparkles, Copy, Check } from 'lucide-react';
-import { copyToClipboard, safeJsonParse } from '../lib/format.js';
+import React, { useEffect, useState } from 'react';
+import {
+  IconCode, IconClose, IconCheck, IconCopy, IconPlus, IconMinus, IconSend, IconSettings,
+} from './Icon.jsx';
+import { copyToClipboard, safeJsonParse, highlightJson } from '../lib/format.js';
 
 export default function ResponseBuilder({ config, onChange }) {
   const [open, setOpen] = useState(false);
@@ -17,7 +19,9 @@ export default function ResponseBuilder({ config, onChange }) {
 
   const addHeader = () => {
     const next = { ...(config.headers || {}) };
-    next[`X-Custom-${Object.keys(next).length + 1}`] = '';
+    let i = Object.keys(next).length + 1;
+    while (next[`X-Custom-${i}`] !== undefined) i++;
+    next[`X-Custom-${i}`] = '';
     update({ headers: next });
   };
 
@@ -40,116 +44,222 @@ export default function ResponseBuilder({ config, onChange }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="btn-outline btn-sm shrink-0"
+        className="btn btn-outline btn-sm shrink-0"
         title="Configure the response hookrick sends back"
+        aria-expanded={open}
       >
-        <Code2 className="h-4 w-4" />
+        <IconCode size={13} />
         <span className="hidden sm:inline">Response</span>
-        {config.enabled ? <span className="ml-1 h-1.5 w-1.5 rounded-full bg-primary" /> : null}
+        {config.enabled ? (
+          <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-[var(--m-get)]" />
+        ) : null}
       </button>
 
-      {open ? (
-        <div className="overlay" onClick={() => setOpen(false)}>
-          <div
-            className="card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 animate-scale-in sm:rounded-lg rounded-none sm:max-h-[85vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2 sticky top-0 bg-card z-10">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <h2 className="text-base font-semibold text-foreground flex-1">Response builder</h2>
-              <button className="btn-ghost btn-icon-sm" onClick={() => setOpen(false)} aria-label="Close">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+      {open ? <ResponseSheet onClose={() => setOpen(false)}>
+        <SheetHeader
+          title="Mock response"
+          subtitle="What hookrick returns to the caller"
+          onClose={() => setOpen(false)}
+        />
 
-            <div className="p-4 space-y-4">
-              <div className="flex items-start gap-2">
+        <div className="px-4 sm:px-5 py-3 border-b border-[var(--line)] flex items-center gap-2">
+          <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+            <button
+              role="switch"
+              aria-checked={config.enabled}
+              onClick={() => update({ enabled: !config.enabled })}
+              className={`relative inline-flex h-5 w-9 rounded-full transition-colors ${
+                config.enabled ? 'bg-[var(--ink)]' : 'bg-[var(--line-2)]'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                  config.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+            <span className="text-[12.5px] text-[var(--ink)]">
+              {config.enabled ? 'Enabled' : 'Disabled'}
+            </span>
+          </label>
+          <span className="t-meta">
+            Passthrough when disabled
+          </span>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-4 space-y-5">
+          {/* Status */}
+          <div>
+            <label className="t-eyebrow block mb-2">Status code</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {[200, 201, 204, 301, 302, 400, 401, 403, 404, 418, 500, 502].map((code) => (
                 <button
-                  onClick={() => update({ enabled: !config.enabled })}
-                  className={`btn ${config.enabled ? 'border-primary text-primary bg-primary/10 hover:bg-primary/15' : ''}`}
+                  key={code}
+                  onClick={() => update({ status: code })}
+                  className={`btn btn-sm t-tabular ${config.status === code ? 'btn-primary' : 'btn-outline'}`}
                 >
-                  <Power className="h-4 w-4" />
-                  {config.enabled ? 'Enabled' : 'Disabled'}
+                  {code}
                 </button>
-                <p className="text-xs text-muted-foreground leading-relaxed pt-2">
-                  When enabled, every incoming request to this endpoint gets this response
-                  instead of the default JSON success envelope.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1.5">Status code</label>
-                <input
-                  className="input w-32"
-                  type="number"
-                  min="100"
-                  max="599"
-                  value={config.status}
-                  onChange={(e) => update({ status: Number(e.target.value) || 200 })}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Headers</label>
-                  <button className="btn-ghost btn-sm" onClick={addHeader}><ListPlus className="h-3.5 w-3.5" /> Add</button>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(config.headers || {}).map(([k, v], idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <input
-                        className="input flex-1 font-mono min-w-0"
-                        value={k}
-                        onChange={(e) => updateHeader(idx, e.target.value, v)}
-                        placeholder="Header-Name"
-                      />
-                      <input
-                        className="input flex-[2] font-mono min-w-0"
-                        value={v}
-                        onChange={(e) => updateHeader(idx, k, e.target.value)}
-                        placeholder="value"
-                      />
-                      <button className="btn-ghost btn-icon-sm shrink-0" onClick={() => removeHeader(k)} aria-label="Remove header">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1.5">Body</label>
-                <textarea
-                  className="input font-mono min-h-[140px] py-2"
-                  value={config.body}
-                  onChange={(e) => update({ body: e.target.value })}
-                  spellCheck={false}
-                />
-                {prettyBody ? (
-                  <details className="mt-2">
-                    <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground">Preview pretty</summary>
-                    <pre className="code mt-1 p-2 rounded-md border border-border bg-muted/40 max-h-40 overflow-auto">{prettyBody}</pre>
-                  </details>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="px-4 py-3 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card">
-              <button className="btn-outline btn-sm" onClick={onCopyHttp}>
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                {copied ? 'Copied' : 'Copy as HTTP'}
-              </button>
-              <button className="btn-primary btn-sm" onClick={() => setOpen(false)}>Done</button>
+              ))}
+              <input
+                type="number"
+                min="100"
+                max="599"
+                value={config.status}
+                onChange={(e) => update({ status: parseInt(e.target.value, 10) || 200 })}
+                className="input t-mono t-tabular"
+                style={{ width: '80px' }}
+              />
             </div>
           </div>
+
+          {/* Headers */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="t-eyebrow">Headers</label>
+              <button className="btn btn-ghost btn-sm" onClick={addHeader}>
+                <IconPlus size={12} /> Add header
+              </button>
+            </div>
+            <div className="space-y-1.5">
+              {Object.entries(config.headers || {}).map(([k, v], i, arr) => (
+                <div key={i} className="flex items-stretch gap-1.5">
+                  <input
+                    className="input t-mono flex-1 min-w-0"
+                    style={{ fontSize: '12.5px' }}
+                    placeholder="Header"
+                    value={k}
+                    onChange={(e) => updateHeader(i, e.target.value, v)}
+                  />
+                  <input
+                    className="input t-mono flex-1 min-w-0"
+                    style={{ fontSize: '12.5px' }}
+                    placeholder="Value"
+                    value={v}
+                    onChange={(e) => updateHeader(i, k, e.target.value)}
+                  />
+                  <button
+                    onClick={() => removeHeader(k)}
+                    className="btn btn-outline btn-icon"
+                    title="Remove header"
+                    aria-label="Remove header"
+                  >
+                    <IconMinus size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Body */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="t-eyebrow">Body</label>
+              <span className="t-meta t-tabular">{config.body?.length || 0} chars</span>
+            </div>
+            <textarea
+              value={config.body}
+              onChange={(e) => update({ body: e.target.value })}
+              spellCheck={false}
+              rows={6}
+              className="input t-mono"
+              style={{
+                fontSize: '12.5px',
+                height: 'auto',
+                minHeight: '120px',
+                lineHeight: 1.6,
+                padding: '10px 12px',
+                resize: 'vertical',
+                fontFamily: "'Geist Mono', 'JetBrains Mono', ui-monospace, monospace",
+              }}
+            />
+            {prettyBody ? (
+              <pre
+                className="mt-2 p-3 rounded-md border border-[var(--line)] bg-[var(--surface-2)] max-h-40 overflow-auto"
+                dangerouslySetInnerHTML={{ __html: prettyBody }}
+              />
+            ) : null}
+          </div>
         </div>
-      ) : null}
+
+        <div className="px-4 sm:px-5 py-3 border-t border-[var(--line)] flex items-center gap-2 shrink-0">
+          <button className="btn btn-outline btn-sm" onClick={onCopyHttp}>
+            {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
+            {copied ? 'Copied' : 'Copy HTTP'}
+          </button>
+          <span className="ml-auto" />
+          <button className="btn btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              update({ enabled: true });
+              setOpen(false);
+            }}
+          >
+            <IconSend size={12} />
+            Save & enable
+          </button>
+        </div>
+      </ResponseSheet> : null}
     </>
   );
 }
 
 function usePrettyBody(body) {
+  if (typeof body !== 'string') return null;
   const parsed = safeJsonParse(body);
-  if (parsed === null) return null;
-  return JSON.stringify(parsed, null, 2);
+  if (!parsed) return null;
+  return highlightJson(parsed);
+}
+
+function SheetHeader({ title, subtitle, onClose }) {
+  return (
+    <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--line)] flex items-center gap-3 shrink-0">
+      <div className="h-8 w-8 rounded-md border border-[var(--line)] bg-[var(--surface)] flex items-center justify-center text-[var(--ink-3)] shrink-0">
+        <IconSettings size={14} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="t-eyebrow">Response</div>
+        <h2 className="text-[14px] font-semibold text-[var(--ink)] truncate">{title}</h2>
+        {subtitle ? <p className="text-[11.5px] text-[var(--ink-4)] truncate">{subtitle}</p> : null}
+      </div>
+      <button
+        onClick={onClose}
+        className="btn btn-ghost btn-icon"
+        aria-label="Close"
+      >
+        <IconClose size={14} />
+      </button>
+    </div>
+  );
+}
+
+function ResponseSheet({ children, onClose }) {
+  // Esc to close
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div
+        className="sheet-overlay"
+        onClick={onClose}
+        role="presentation"
+      />
+      <div
+        className="sheet md:!inset-y-0 md:!right-0 md:!left-auto md:!bottom-auto md:!top-0 md:!rounded-none md:!border-l md:!w-[480px] md:!max-w-[90vw]"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mock response"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        {children}
+      </div>
+    </>
+  );
 }

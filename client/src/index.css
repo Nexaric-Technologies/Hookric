@@ -2,356 +2,490 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---------------------------------------------------------------------------
-   hookrick — shadcn-style theming
-   Tokens are HSL triplets (no `hsl(...)` wrapper) so Tailwind's
-   `hsl(var(--x) / <alpha-value>)` mapping works.
---------------------------------------------------------------------------- */
+/* =========================================================================
+   hookrick — design tokens
+   Warm monochrome (Bone / Off-white) canvas with deliberately scarce color,
+   used only for semantic meaning. Editorial serif for display, geometric
+   sans for UI, mono for data. No gradients on chrome, no drop shadows.
+   Inspired by Notion / Linear / Bear — single-screen, document-style.
+   ========================================================================= */
 
 :root {
-  /* Light mode (white mode) */
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
+  /* Canvas — warm bone, never pure white */
+  --canvas: #FBFBFA;
+  --surface: #FFFFFF;
+  --surface-2: #F7F6F3;
+  --surface-3: #F1EFEC;
 
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  /* Ink — never #000. Charcoal for body, dimmer for muted. */
+  --ink: #111111;
+  --ink-2: #2F3437;
+  --ink-3: #565A5E;
+  --ink-4: #787774;
+  --ink-5: #9B9A97;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  /* Lines */
+  --line: #EAEAE8;
+  --line-2: #E0DEDB;
 
-  --primary: 221 83% 53%;
-  --primary-foreground: 210 40% 98%;
+  /* Spot pastels (semantic only) */
+  --tint-red-bg:    #FDEBEC;  --tint-red-fg:    #9F2F2D;
+  --tint-blue-bg:   #E1F3FE;  --tint-blue-fg:   #1F6C9F;
+  --tint-green-bg:  #EDF3EC;  --tint-green-fg:  #346538;
+  --tint-amber-bg:  #FBF3DB;  --tint-amber-fg:  #956400;
+  --tint-violet-bg: #EFEBFB;  --tint-violet-fg: #5B45A6;
 
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
+  /* Method badges — slightly desaturated to feel "machined" */
+  --m-get:    #346538;  --m-get-bg:    #EDF3EC;
+  --m-post:   #1F6C9F;  --m-post-bg:   #E1F3FE;
+  --m-put:    #956400;  --m-put-bg:    #FBF3DB;
+  --m-patch:  #956400;  --m-patch-bg:  #FBF3DB;
+  --m-delete: #9F2F2D;  --m-delete-bg: #FDEBEC;
+  --m-other:  #565A5E;  --m-other-bg:  #F1EFEC;
 
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
+  /* JSON syntax */
+  --json-key:    #1F6C9F;
+  --json-string: #346538;
+  --json-number: #956400;
+  --json-bool:   #5B45A6;
+  --json-null:   #787774;
+  --json-punct:  #9B9A97;
 
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
-
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 221 83% 53%;
-
-  /* Method badges — desaturated, premium feel */
-  --method-get: 160 60% 38%;
-  --method-post: 199 89% 48%;
-  --method-put: 35 92% 50%;
-  --method-patch: 35 92% 50%;
-  --method-delete: 0 72% 51%;
-  --method-other: 215 16% 47%;
-
-  --radius: 0.625rem;
-
-  /* JSON syntax colors (light) */
-  --json-key: 217 91% 50%;
-  --json-string: 160 60% 35%;
-  --json-number: 32 95% 36%;
-  --json-boolean: 280 65% 45%;
-  --json-null: 215 16% 47%;
-  --json-punct: 215 14% 65%;
-
-  --code-bg: 210 40% 98%;
-  --code-border: 214 32% 91%;
+  --radius: 8px;
 
   color-scheme: light;
 }
 
 .dark,
 [data-theme="dark"] {
-  /* Dark mode — premium midnight, slight blue tint */
-  --background: 222 47% 5%;
-  --foreground: 210 40% 98%;
+  --canvas: #0E0E0D;
+  --surface: #161614;
+  --surface-2: #1C1C1A;
+  --surface-3: #232220;
 
-  --card: 222 47% 7%;
-  --card-foreground: 210 40% 98%;
+  --ink:   #F5F4F1;
+  --ink-2: #D9D6D0;
+  --ink-3: #A8A4A0;
+  --ink-4: #807C78;
+  --ink-5: #5C5854;
 
-  --popover: 222 47% 7%;
-  --popover-foreground: 210 40% 98%;
+  --line:   #282624;
+  --line-2: #34322F;
 
-  --primary: 217 91% 60%;
-  --primary-foreground: 222 47% 11%;
+  --tint-red-bg:    #2A1414;  --tint-red-fg:    #E89190;
+  --tint-blue-bg:   #0F1E26;  --tint-blue-fg:   #8FC5E5;
+  --tint-green-bg:  #122116;  --tint-green-fg:  #9DCBA2;
+  --tint-amber-bg:  #251D0A;  --tint-amber-fg:  #E8C97A;
+  --tint-violet-bg: #1B1530;  --tint-violet-fg: #B7A6E8;
 
-  --secondary: 217 33% 12%;
-  --secondary-foreground: 210 40% 98%;
+  --m-get:    #9DCBA2;  --m-get-bg:    #1A2A1C;
+  --m-post:   #8FC5E5;  --m-post-bg:   #0F1E26;
+  --m-put:    #E8C97A;  --m-put-bg:    #251D0A;
+  --m-patch:  #E8C97A;  --m-patch-bg:  #251D0A;
+  --m-delete: #E89190;  --m-delete-bg: #2A1414;
+  --m-other:  #A8A4A0;  --m-other-bg:  #232220;
 
-  --muted: 217 33% 12%;
-  --muted-foreground: 215 20% 65%;
-
-  --accent: 217 33% 12%;
-  --accent-foreground: 210 40% 98%;
-
-  --destructive: 0 63% 50%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 217 33% 14%;
-  --input: 217 33% 14%;
-  --ring: 217 91% 60%;
-
-  --method-get: 160 65% 50%;
-  --method-post: 199 89% 65%;
-  --method-put: 35 95% 60%;
-  --method-patch: 35 95% 60%;
-  --method-delete: 0 75% 60%;
-  --method-other: 215 20% 65%;
-
-  /* JSON syntax colors (dark) */
-  --json-key: 217 91% 70%;
-  --json-string: 160 65% 60%;
-  --json-number: 40 95% 65%;
-  --json-boolean: 295 80% 75%;
-  --json-null: 215 20% 65%;
-  --json-punct: 215 14% 50%;
-
-  --code-bg: 222 47% 6%;
-  --code-border: 217 33% 14%;
+  --json-key:    #8FC5E5;
+  --json-string: #9DCBA2;
+  --json-number: #E8C97A;
+  --json-bool:   #B7A6E8;
+  --json-null:   #807C78;
+  --json-punct:  #5C5854;
 
   color-scheme: dark;
 }
 
 @layer base {
-  * { @apply border-border; }
+  *,
+  *::before,
+  *::after { border-color: var(--line); }
+
   html, body, #root { height: 100%; }
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    background: var(--canvas);
   }
+
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: 'Inter', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
   }
+
+  ::selection { background: var(--ink); color: var(--canvas); }
+
+  /* Native scrollbars — flat, low-contrast, fit the monochrome palette */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: content-box; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-5); background-clip: content-box; }
+  ::-webkit-scrollbar-corner { background: transparent; }
 
-  ::selection { background: hsl(var(--primary) / 0.2); color: hsl(var(--foreground)); }
-
-  /* Focus ring used everywhere */
-  :focus-visible { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
-/* ---------------------------------------------------------------------------
-   Component primitives (shadcn-shaped, no shadcn dependency)
---------------------------------------------------------------------------- */
+/* =========================================================================
+   Typography utility classes
+   ========================================================================= */
 @layer components {
-  .font-display { font-family: 'Satoshi Variable', 'Satoshi', 'Inter', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
+  .t-display {
+    font-family: 'Newsreader', 'Lyon Text', 'Iowan Old Style', Georgia, serif;
+    letter-spacing: -0.025em;
+    line-height: 1.04;
+  }
+  .t-mono {
+    font-family: 'Geist Mono', 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+    font-feature-settings: 'zero', 'ss01';
+  }
+  .t-eyebrow {
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--ink-4);
+  }
+  .t-meta {
+    font-size: 11px;
+    color: var(--ink-4);
+    font-variant-numeric: tabular-nums;
+  }
+  .t-tabular { font-variant-numeric: tabular-nums; }
 
-  .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-soft;
+  /* ---------- Surfaces ---------- */
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--line);
   }
   .surface-2 {
-    @apply rounded-md border bg-secondary/40 text-secondary-foreground;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+  .surface-sunken {
+    background: var(--surface-2);
   }
 
-  /* -------------------------------------------------------------------------
-     Awwwards-tier primitives — the "Double-Bezel" (Doppelrand) architecture
-     and motion vocabulary. The right-column "Parsed analysis" cards use
-     these so they read as physical, machined hardware, not flat boxes.
-  ------------------------------------------------------------------------- */
-
-  /* The outer shell of a Double-Bezel card: a hairline ring + a 1.5px
-     inset padding (the "tray" the inner core sits in) + a large
-     squircle radius. The inner core provides the contrasting surface. */
-  .bezel-shell {
-    @apply rounded-bezel-outer p-[1.5px] ring-1 ring-black/[0.06] dark:ring-white/[0.08]
-           bg-gradient-to-b from-black/[0.04] via-transparent to-black/[0.02]
-           dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]
-           shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset,0_-1px_0_0_rgba(0,0,0,0.04)_inset];
-  }
-  .bezel-core {
-    @apply rounded-bezel-inner overflow-hidden min-w-0
-           bg-gradient-to-b from-white/[0.02] to-transparent
-           shadow-[inset_0_1px_1px_rgba(255,255,255,0.06),inset_0_-1px_0_rgba(0,0,0,0.04)]
-           dark:from-white/[0.03];
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
   }
 
-  /* Glass surface used on the right-column header strip and the
-     mobile tab bar. The blur is fixed (header is non-scrolling). */
-  .glass {
-    @apply bg-white/[0.04] dark:bg-white/[0.03] backdrop-blur-xl
-           ring-1 ring-white/[0.06] dark:ring-white/[0.06];
-  }
-  .glass-strong {
-    @apply bg-white/[0.06] dark:bg-white/[0.05] backdrop-blur-2xl
-           ring-1 ring-white/[0.08] dark:ring-white/[0.08];
-  }
-
-  /* Entry animation: heavy fade-up + brief blur. Apply via the
-     `anim-rise` class. Respects `prefers-reduced-motion`. */
-  .anim-rise {
-    animation: rise 700ms cubic-bezier(0.32, 0.72, 0, 1) both;
-  }
-  .anim-rise-1 { animation-delay: 40ms; }
-  .anim-rise-2 { animation-delay: 80ms; }
-  .anim-rise-3 { animation-delay: 120ms; }
-  .anim-rise-4 { animation-delay: 160ms; }
-  .anim-rise-5 { animation-delay: 200ms; }
-  .anim-rise-6 { animation-delay: 240ms; }
-  .anim-rise-7 { animation-delay: 280ms; }
-  .anim-rise-8 { animation-delay: 320ms; }
-
-  /* "Magnetic" hover: applies a tiny lift + inset highlight. Use on
-     any clickable / focusable surface that should feel physical. */
-  .magnetic {
-    @apply transition-all duration-500 ease-spring
-           hover:-translate-y-[1px] hover:shadow-[0_4px_16px_-8px_rgba(0,0,0,0.18),inset_0_1px_0_0_rgba(255,255,255,0.08)]
-           active:translate-y-0 active:duration-150;
-  }
-
-  /* Eyebrow tag — the microscopic pill that precedes headings. */
-  .eyebrow {
-    @apply inline-flex items-center gap-1.5 rounded-island
-           px-2.5 py-1 text-[9.5px] uppercase tracking-[0.18em] font-medium
-           text-muted-foreground
-           bg-white/[0.04] dark:bg-white/[0.04]
-           ring-1 ring-black/[0.06] dark:ring-white/[0.08];
-  }
-
-  /* Radial glow used on the right column background — a single
-     subtle orb that gives the panel a sense of depth without
-     burning GPU. Fixed-position pseudo so it never repaints. */
-  .orb-bg {
-    position: relative;
-  }
-  .orb-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-      radial-gradient(420px 280px at 8% -10%,  hsl(var(--primary) / 0.10), transparent 60%),
-      radial-gradient(360px 240px at 96% 110%, hsl(160 60% 50% / 0.06),  transparent 60%);
-    border-radius: inherit;
-  }
-  .orb-bg > * { position: relative; z-index: 1; }
-
-  /* Spring-eased default for any element that opts in. Keeps
-     existing utility transitions working but smooths them. */
-  .ease-spring { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
-
+  /* ---------- Buttons ---------- */
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
-           border border-transparent bg-secondary text-secondary-foreground
-           hover:bg-secondary/80 transition-colors
-           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
-           disabled:pointer-events-none disabled:opacity-50;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink);
+    white-space: nowrap;
+    transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 120ms ease;
+    user-select: none;
+    cursor: pointer;
   }
+  .btn:disabled { opacity: 0.4; pointer-events: none; }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
-           bg-primary text-primary-foreground border border-primary
-           hover:bg-primary/90 transition-colors
-           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
-           disabled:pointer-events-none disabled:opacity-50;
+    background: var(--ink);
+    color: var(--canvas);
+    border-color: var(--ink);
   }
+  .btn-primary:hover:not(:disabled) { background: var(--ink-2); border-color: var(--ink-2); }
+
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
-           border border-input bg-background text-foreground
-           hover:bg-accent hover:text-accent-foreground transition-colors
-           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
-           disabled:pointer-events-none disabled:opacity-50;
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--line);
   }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--surface-2);
+    border-color: var(--line-2);
+  }
+
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
-           text-muted-foreground hover:text-foreground hover:bg-accent transition-colors
-           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
-           disabled:pointer-events-none disabled:opacity-50;
+    background: transparent;
+    color: var(--ink-3);
   }
-  .btn-sm { @apply h-8 px-2.5; }
-  .btn-icon { @apply h-9 w-9; }
-  .btn-icon-sm { @apply h-8 w-8; }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
 
+  .btn-icon {
+    width: 32px;
+    padding: 0;
+  }
+
+  .btn-sm { height: 28px; padding: 0 8px; font-size: 12.5px; border-radius: 5px; }
+  .btn-icon.btn-sm { width: 28px; }
+  .btn-lg { height: 38px; padding: 0 14px; font-size: 14px; }
+
+  /* ---------- Inputs ---------- */
   .input {
-    @apply flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground
-           placeholder:text-muted-foreground
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background
-           disabled:cursor-not-allowed disabled:opacity-50 transition-colors;
+    display: flex;
+    height: 32px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 0 10px;
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
   }
-  .input-mono { @apply font-mono; }
+  .input::placeholder { color: var(--ink-5); }
+  .input:focus { outline: none; border-color: var(--ink-3); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 8%, transparent); }
 
+  /* ---------- Chips & Badges ---------- */
   .chip {
-    @apply inline-flex items-center gap-1 px-2 h-6 rounded-full text-[11px] font-medium border;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .chip-tint-red    { background: var(--tint-red-bg);    color: var(--tint-red-fg);    border-color: color-mix(in srgb, var(--tint-red-fg) 18%, transparent); }
+  .chip-tint-blue   { background: var(--tint-blue-bg);   color: var(--tint-blue-fg);   border-color: color-mix(in srgb, var(--tint-blue-fg) 18%, transparent); }
+  .chip-tint-green  { background: var(--tint-green-bg);  color: var(--tint-green-fg);  border-color: color-mix(in srgb, var(--tint-green-fg) 18%, transparent); }
+  .chip-tint-amber  { background: var(--tint-amber-bg);  color: var(--tint-amber-fg);  border-color: color-mix(in srgb, var(--tint-amber-fg) 18%, transparent); }
+  .chip-tint-violet { background: var(--tint-violet-bg); color: var(--tint-violet-fg); border-color: color-mix(in srgb, var(--tint-violet-fg) 18%, transparent); }
+
+  .method-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-family: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 1px solid;
+  }
+  .m-get    { color: var(--m-get);    background: var(--m-get-bg);    border-color: color-mix(in srgb, var(--m-get) 25%, transparent); }
+  .m-post   { color: var(--m-post);   background: var(--m-post-bg);   border-color: color-mix(in srgb, var(--m-post) 25%, transparent); }
+  .m-put    { color: var(--m-put);    background: var(--m-put-bg);    border-color: color-mix(in srgb, var(--m-put) 25%, transparent); }
+  .m-patch  { color: var(--m-patch);  background: var(--m-patch-bg);  border-color: color-mix(in srgb, var(--m-patch) 25%, transparent); }
+  .m-delete { color: var(--m-delete); background: var(--m-delete-bg); border-color: color-mix(in srgb, var(--m-delete) 25%, transparent); }
+  .m-other  { color: var(--m-other);  background: var(--m-other-bg);  border-color: var(--line); }
+
+  /* ---------- Tabs (segmented bar in the right pane) ---------- */
+  .pane-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: color 150ms ease, background 150ms ease;
+  }
+  .pane-tab:hover { color: var(--ink); }
+  .pane-tab-active {
+    background: var(--surface-2);
+    color: var(--ink);
   }
 
-  .tab {
-    @apply inline-flex items-center justify-center whitespace-nowrap h-9 px-3 rounded-md text-sm font-medium
-           text-muted-foreground hover:text-foreground hover:bg-accent transition-colors
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-  .tab-active {
-    @apply bg-secondary text-secondary-foreground;
-  }
-
+  /* ---------- kbd ---------- */
   .kbd {
-    @apply inline-flex h-5 select-none items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground;
+    display: inline-flex;
+    height: 18px;
+    align-items: center;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    padding: 0 5px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    color: var(--ink-3);
   }
 
-  /* Code blocks */
-  .code {
-    @apply font-mono text-[12.5px] leading-[1.55] whitespace-pre;
+  /* ---------- JSON syntax ---------- */
+  .json-key    { color: var(--json-key); }
+  .json-string { color: var(--json-string); }
+  .json-number { color: var(--json-number); }
+  .json-bool   { color: var(--json-bool); }
+  .json-null   { color: var(--json-null); }
+  .json-punct  { color: var(--json-punct); }
+
+  .code-mono {
+    font-family: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink-2);
   }
   .code-wrap {
-    @apply font-mono text-[12.5px] leading-[1.55] whitespace-pre-wrap break-words;
+    font-family: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ink-2);
   }
 
-  /* Segmented control (used for mobile tabs + storage mode) */
-  .segmented {
-    @apply inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-secondary border border-border;
-  }
-  .segmented-item {
-    @apply flex-1 inline-flex items-center justify-center h-8 px-3 rounded-md text-xs font-medium
-           text-muted-foreground hover:text-foreground transition-colors
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-  .segmented-item-active {
-    @apply bg-background text-foreground shadow-soft;
+  /* ---------- Empty / placeholder states ---------- */
+  .empty-shell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--ink-4);
   }
 
-  /* Method color helpers — these are referenced by the badge component */
-  .method-badge {
-    @apply inline-flex items-center justify-center min-w-[3.25rem] h-6 px-2 rounded-md text-[10.5px] font-semibold tracking-wide border font-mono;
+  /* ---------- Sheet (mobile-style drawer) ---------- */
+  .sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--ink) 30%, transparent);
+    backdrop-filter: blur(2px);
+    z-index: 60;
+    animation: fade-in 160ms ease both;
+  }
+  .sheet {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 70;
+    background: var(--canvas);
+    border-top: 1px solid var(--line);
+    border-radius: 12px 12px 0 0;
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+    animation: sheet-up 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  /* Subtle row hover for the request list */
-  .row-hover { @apply transition-colors; }
-  .row-hover:hover { @apply bg-accent/60; }
-
-  /* Modal/dialog overlay */
-  .overlay {
-    @apply fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in-fast;
+  /* ---------- Section divider (hairline with optional eyebrow) ---------- */
+  .divider {
+    height: 1px;
+    background: var(--line);
+    width: 100%;
   }
 
-  /* JSON syntax tokens (theme-aware via variables) */
-  .json-key    { color: hsl(var(--json-key)); }
-  .json-string { color: hsl(var(--json-string)); }
-  .json-number { color: hsl(var(--json-number)); }
-  .json-boolean, .json-true, .json-false { color: hsl(var(--json-boolean)); }
-  .json-null   { color: hsl(var(--json-null)); }
-  .json-punct  { color: hsl(var(--json-punct)); }
+  /* ---------- Inline code (markdown-ish) ---------- */
+  .ic {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 0.85em;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- Connection dot ---------- */
+  .conn-dot {
+    width: 6px; height: 6px; border-radius: 9999px;
+    background: var(--ink-5);
+    flex-shrink: 0;
+  }
+  .conn-dot.live {
+    background: var(--m-get);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--m-get) 35%, transparent);
+    animation: pulse-soft 1.6s ease-in-out infinite;
+  }
+
+  /* ---------- Pulse ring used by the bell button when notification fires ---------- */
+  .pulse-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .pulse-ring::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    border: 1.5px solid var(--ink);
+    opacity: 0;
+    animation: ring-out 1100ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
-/* Small utility tweaks for keyboard focus on icon-only buttons */
-button:focus-visible, a:focus-visible { outline: none; }
+/* =========================================================================
+   Animations — quiet, GPU-only.
+   ========================================================================= */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes sheet-up {
+  from { transform: translate3d(0, 100%, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+@keyframes ring-out {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+@keyframes row-flash {
+  0%   { background: color-mix(in srgb, var(--m-post) 14%, transparent); }
+  100% { background: transparent; }
+}
 
-/* ---------------------------------------------------------------------------
-   Reduced motion — kill all entry animations for users who opt out.
-   Keeps the UI fully functional, just static.
---------------------------------------------------------------------------- */
+.row-flash { animation: row-flash 1400ms ease-out both; }
+
+.anim-rise {
+  animation: fade-in-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-rise-1 { animation-delay: 30ms; }
+.anim-rise-2 { animation-delay: 70ms; }
+.anim-rise-3 { animation-delay: 110ms; }
+.anim-rise-4 { animation-delay: 150ms; }
+.anim-rise-5 { animation-delay: 190ms; }
+
 @media (prefers-reduced-motion: reduce) {
-  .anim-rise,
-  .anim-rise-1, .anim-rise-2, .anim-rise-3, .anim-rise-4,
-  .anim-rise-5, .anim-rise-6, .anim-rise-7, .anim-rise-8,
-  .animate-rise, .animate-shimmer, .animate-pulse-soft {
+  .anim-rise, .row-flash, .pulse-ring::after,
+  .conn-dot.live, .anim-rise-1, .anim-rise-2, .anim-rise-3, .anim-rise-4, .anim-rise-5 {
     animation: none !important;
-  }
-  .magnetic, .ease-spring, .bezel-shell, .bezel-core {
-    transition: none !important;
   }
 }

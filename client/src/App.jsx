@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Webhook, Github, BookOpen, Zap, Shield, Database, Server, X, Sparkles, ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useWebhookStore } from './lib/useWebhookStore.js';
 import EndpointCard from './components/EndpointCard.jsx';
 import SearchBar from './components/SearchBar.jsx';
@@ -8,33 +7,71 @@ import RequestDetails from './components/RequestDetails.jsx';
 import ParsedAnalysis from './components/ParsedAnalysis.jsx';
 import ResponseBuilder from './components/ResponseBuilder.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
+import {
+  IconWebhook, IconHelp, IconBell, IconBellOff, IconActivity,
+  IconList, IconCode, IconClose, IconSparkle, IconArrowRight,
+  IconShield, IconServer, IconLayers,
+} from './components/Icon.jsx';
+
+// Top-level page modes:
+//   'details'   — right pane shows RequestDetails (default)
+//   'analysis'  — right pane shows ParsedAnalysis
+//   'response'  — right pane shows ResponseBuilder
+// On desktop all three panes are visible at once (list | right pane).
+// On mobile the list and right pane swap (single-screen operation).
+const PANE_KEYS = [
+  { key: 'details',  label: 'Details',  icon: IconList },
+  { key: 'analysis', label: 'Analysis', icon: IconActivity },
+  { key: 'response', label: 'Response', icon: IconCode },
+];
 
 export default function App() {
   const store = useWebhookStore();
-  const [mobileView, setMobileView] = useState('list'); // 'list' | 'detail' | 'analysis'
+  const [pane, setPane] = useState('details'); // desktop: which right-pane tab
+  const [mobileView, setMobileView] = useState('list'); // 'list' | 'right'
   const [showHelp, setShowHelp] = useState(false);
 
   const regenerate = () => {
-    // endpoint id is persisted in localStorage; easiest path is a reload
+    // Reload to reset endpoint id + clear in-memory store. The store
+    // re-initializes from localStorage on the next mount.
     window.location.reload();
   };
 
+  // When a new request lands and we're on the details/analysis pane on
+  // desktop, the store auto-selects it. On mobile, switch to the right
+  // pane if user is currently looking at the list (so they see the new
+  // request immediately without scrolling the list).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isMobile = !window.matchMedia('(min-width: 768px)').matches;
+    if (!isMobile) return;
+    if (store.lastIncomingId && mobileView === 'list' && store.active) {
+      // Don't auto-switch on mobile — it's disruptive. The list flashes.
+    }
+  }, [store.incomingPulse]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <div className="h-full flex flex-col bg-background text-foreground">
+    <div className="h-full flex flex-col bg-[var(--canvas)] text-[var(--ink)]">
       <Header
         onHelp={() => setShowHelp(true)}
         theme={store.theme}
         setTheme={store.setTheme}
-        resolvedTheme={store.resolvedTheme}
+        notificationsOn={store.notificationsOn}
+        notificationPermission={store.notificationPermission}
+        toggleNotifications={store.toggleNotifications}
+        incomingPulse={store.incomingPulse}
+        lastIncomingId={store.lastIncomingId}
       />
 
-      <main className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto px-3 sm:px-4 pb-20 md:pb-4 pt-3 flex flex-col gap-3">
+      <main className="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-3 sm:px-4 pt-3 pb-20 md:pb-4 flex flex-col gap-3">
+        {/* Endpoint bar — always visible */}
         <EndpointCard
           endpointId={store.endpointId}
           onRegenerate={regenerate}
           connected={store.connected}
         />
 
+        {/* Search bar (and storage toggle) */}
         <div className="flex items-stretch gap-2">
           <SearchBar
             value={store.query}
@@ -43,58 +80,102 @@ export default function App() {
             onStorageMode={store.switchStorageMode}
             idbReady={store.idbReady}
           />
-          <ResponseBuilder config={store.responseConfig} onChange={store.setResponseConfig} />
+          {/* Response button lives in the toolbar on mobile too,
+              opens the same sheet */}
+          <div className="md:hidden">
+            <ResponseBuilder config={store.responseConfig} onChange={store.setResponseConfig} />
+          </div>
         </div>
 
-        {/* Desktop 3-panel grid; mobile uses the bottom tab strip */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[minmax(280px,340px)_minmax(0,1fr)_minmax(300px,380px)] gap-3">
+        {/* Desktop 2-pane: list (always visible) + right pane tabbed.
+            Mobile: list OR right pane, swap via bottom tab bar. */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] gap-3">
+          {/* List */}
           <div className={`card min-h-0 ${mobileView === 'list' ? '' : 'hidden md:block'}`}>
             <RequestList
               requests={store.requests}
               activeId={store.activeId}
-              onSelect={(id) => { store.setActiveId(id); setMobileView('detail'); }}
+              onSelect={(id) => { store.setActiveId(id); setMobileView('right'); }}
               onClear={store.clearAll}
               totalCount={store.totalCount}
               query={store.query}
+              lastIncomingId={store.lastIncomingId}
             />
           </div>
 
-          <div className={`card min-h-0 ${mobileView === 'detail' ? '' : 'hidden md:block'}`}>
-            <RequestDetails request={store.active} allRequests={store.requests} />
-          </div>
-
-          <div className={`card min-h-0 flex flex-col overflow-hidden orb-bg ${mobileView === 'analysis' ? '' : 'hidden md:block'}`}>
-            <div className="px-4 py-3 border-b border-border/60 flex items-center gap-2.5 shrink-0 glass">
-              <span className="eyebrow">
-                <Zap className="h-2.5 w-2.5 text-primary" />
-                insight
-              </span>
-              <span className="text-sm font-display font-semibold text-foreground tracking-tight">
-                Parsed analysis
-              </span>
-              {store.active ? (
-                <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-muted-foreground tabular-nums">
-                  <span className="h-1.5 w-1.5 rounded-full bg-method-get animate-pulse-soft" />
+          {/* Right pane (Details / Analysis / Response) */}
+          <div
+            className={`card min-h-0 flex flex-col overflow-hidden ${mobileView === 'right' ? '' : 'hidden md:flex'}`}
+          >
+            {/* Pane tab strip */}
+            <div className="px-3 sm:px-4 pt-2.5 pb-2 border-b border-[var(--line)] flex items-center gap-3 shrink-0">
+              <div
+                className="flex items-center gap-0.5 p-0.5 rounded-md bg-[var(--surface-2)] border border-[var(--line)]"
+                role="tablist"
+                aria-label="Right pane"
+              >
+                {PANE_KEYS.map((p) => {
+                  const Icon = p.icon;
+                  const active = pane === p.key;
+                  return (
+                    <button
+                      key={p.key}
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setPane(p.key)}
+                      className={`pane-tab ${active ? 'pane-tab-active' : ''}`}
+                    >
+                      <Icon size={13} />
+                      <span>{p.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {pane === 'analysis' && store.active ? (
+                <span className="ml-auto t-meta inline-flex items-center gap-1.5">
+                  <span className="conn-dot live" />
                   live
                 </span>
               ) : null}
+              <span className="ml-auto" />
+              {/* Response button in the header of the right pane (desktop only) */}
+              <div className="hidden md:block">
+                <ResponseBuilder config={store.responseConfig} onChange={store.setResponseConfig} />
+              </div>
             </div>
-            <div className="flex-1 min-h-0">
-              <ParsedAnalysis request={store.active} />
+
+            {/* Pane content — each panel is the single scroll surface */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {pane === 'details'  ? <RequestDetails request={store.active} allRequests={store.requests} /> : null}
+              {pane === 'analysis' ? <ParsedAnalysis request={store.active} /> : null}
             </div>
           </div>
         </div>
       </main>
 
-      {/* Mobile bottom tab strip — floating glass island with rounded
-          bezel, separated from the screen edge to feel "machined". */}
+      {/* Mobile bottom tab strip — single-screen operation.
+          Two tabs: Requests / Details. The current pane (Details /
+          Analysis / Response) is selected via the right pane tabs once
+          the user is on the right side. */}
       <nav className="md:hidden fixed bottom-3 inset-x-3 z-30">
-        <div className="glass-strong rounded-bezel-outer shadow-pop p-1.5">
-          <div className="grid grid-cols-3 gap-1">
-            <MobileTab active={mobileView === 'list'} onClick={() => setMobileView('list')} count={store.totalCount}>Requests</MobileTab>
-            <MobileTab active={mobileView === 'detail'} onClick={() => setMobileView('detail')} disabled={!store.active}>Details</MobileTab>
-            <MobileTab active={mobileView === 'analysis'} onClick={() => setMobileView('analysis')} disabled={!store.active}>Analysis</MobileTab>
-          </div>
+        <div
+          className="flex items-center gap-0.5 p-1 rounded-lg bg-[var(--surface)] border border-[var(--line)]"
+          style={{ paddingBottom: 'calc(4px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <MobileTab
+            active={mobileView === 'list'}
+            onClick={() => setMobileView('list')}
+            count={store.totalCount}
+          >
+            Requests
+          </MobileTab>
+          <MobileTab
+            active={mobileView === 'right'}
+            onClick={() => setMobileView('right')}
+            disabled={!store.active}
+          >
+            {pane === 'analysis' ? 'Analysis' : pane === 'response' ? 'Response' : 'Details'}
+          </MobileTab>
         </div>
       </nav>
 
@@ -103,45 +184,84 @@ export default function App() {
   );
 }
 
-function Header({ onHelp, theme, setTheme, resolvedTheme }) {
+// --- Header ---
+
+function Header({ onHelp, theme, setTheme, notificationsOn, notificationPermission, toggleNotifications, incomingPulse }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="max-w-[1600px] mx-auto px-3 sm:px-4 h-14 flex items-center gap-2 sm:gap-3">
-        <a className="flex items-center gap-2.5 group" href="/" onClick={(e) => e.preventDefault()}>
-          <div className="bezel-shell p-[1.5px] magnetic">
-            <div className="bezel-core w-8 h-8 flex items-center justify-center bg-primary text-primary-foreground">
-              <Webhook className="h-3.5 w-3.5" strokeWidth={1.5} />
-            </div>
+    <header
+      className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--canvas)]/85"
+      style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+    >
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 h-14 flex items-center gap-2 sm:gap-3">
+        <a
+          className="flex items-center gap-2.5 group"
+          href="/"
+          onClick={(e) => e.preventDefault()}
+        >
+          <div
+            className="h-8 w-8 rounded-md bg-[var(--ink)] text-[var(--canvas)] flex items-center justify-center"
+          >
+            <IconWebhook size={16} strokeWidth={1.4} />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-[15px] font-display font-bold text-foreground tracking-tight">hookrick</span>
-            <span className="text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground/80 font-medium">by nexaric</span>
+            <span className="text-[15px] font-semibold text-[var(--ink)] tracking-tight">hookrick</span>
+            <span className="text-[9.5px] uppercase tracking-[0.16em] text-[var(--ink-4)] font-medium">webhook inspector</span>
           </div>
         </a>
 
         <span className="ml-auto flex items-center gap-1 sm:gap-2">
           <button
             onClick={onHelp}
-            className="btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm"
             aria-label="How it works"
           >
-            <BookOpen className="h-4 w-4" />
+            <IconHelp size={14} />
             <span className="hidden sm:inline">How it works</span>
           </button>
-          <a
-            className="btn-ghost btn-icon-sm hidden sm:inline-flex"
-            href="https://github.com"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="GitHub"
-          >
-            <Github className="h-4 w-4" />
-          </a>
-          <span className="hidden md:inline-block h-5 w-px bg-border" />
-          <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
+          <BellToggle
+            on={notificationsOn}
+            permission={notificationPermission}
+            onClick={toggleNotifications}
+            incomingPulse={incomingPulse}
+          />
+          <span className="hidden md:inline-block h-5 w-px bg-[var(--line)]" />
+          <ThemeToggle theme={theme} setTheme={setTheme} />
         </span>
       </div>
     </header>
+  );
+}
+
+function BellToggle({ on, permission, onClick, incomingPulse }) {
+  // Disabled: when notifications are not supported at all, OR denied by the OS.
+  const supported = permission !== 'unsupported';
+  const denied = permission === 'denied';
+
+  let title = 'Enable browser alerts for incoming webhooks';
+  if (!supported) title = 'Browser notifications are not supported here';
+  if (denied)     title = 'Notifications are blocked — enable in your browser settings';
+  if (on)         title = 'Alerts on — click to disable';
+
+  // Pulse-ring animation when a new request just landed.
+  const Pulse = incomingPulse > 0 && on ? (
+    <span key={incomingPulse} className="pulse-ring" />
+  ) : null;
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={!supported || denied}
+      title={title}
+      aria-label={title}
+      aria-pressed={on}
+      className={`relative btn btn-ghost btn-icon-sm ${on ? 'text-[var(--ink)]' : ''} disabled:opacity-40`}
+    >
+      {on ? <IconBell size={14} /> : <IconBellOff size={14} />}
+      {on ? (
+        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[var(--m-get)]" />
+      ) : null}
+      {Pulse}
+    </button>
   );
 }
 
@@ -150,17 +270,20 @@ function MobileTab({ active, onClick, disabled, count, children }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`relative h-11 rounded-bezel-inner text-[13px] font-medium
-        transition-all duration-500 ease-spring
-        ${active
-          ? 'bg-foreground text-background shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_4px_12px_-4px_rgba(0,0,0,0.3)]'
-          : 'text-muted-foreground hover:text-foreground active:scale-[0.98]'}
-        disabled:opacity-30 disabled:pointer-events-none`}
+      aria-pressed={active}
+      className={`relative flex-1 h-10 rounded-md text-[13px] font-medium transition-colors ${
+        active
+          ? 'bg-[var(--ink)] text-[var(--canvas)]'
+          : 'text-[var(--ink-3)] hover:text-[var(--ink)]'
+      } disabled:opacity-30 disabled:pointer-events-none`}
     >
       {children}
       {count > 0 ? (
-        <span className={`ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-semibold rounded-full tabular-nums
-          ${active ? 'bg-background/20 text-background' : 'bg-white/[0.08] text-foreground/80'}`}>
+        <span
+          className={`ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-semibold rounded-full t-tabular ${
+            active ? 'bg-[var(--canvas)]/20 text-[var(--canvas)]' : 'bg-[var(--surface-2)] text-[var(--ink-3)] border border-[var(--line)]'
+          }`}
+        >
           {count}
         </span>
       ) : null}
@@ -168,54 +291,65 @@ function MobileTab({ active, onClick, disabled, count, children }) {
   );
 }
 
+// --- Help / "How it works" modal ---
+
 function HelpModal({ onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="sheet-overlay" onClick={onClose} role="presentation">
       <div
-        className="card w-full max-w-xl max-h-[90vh] overflow-y-auto p-0 animate-scale-in sm:rounded-lg rounded-none"
+        className="card w-full max-w-xl max-h-[90vh] overflow-y-auto sm:!rounded-lg"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="How hookrick works"
       >
-        <div className="px-5 py-4 border-b border-border flex items-center gap-2 sticky top-0 bg-card z-10">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <h2 className="text-base font-display font-bold text-foreground flex-1">How hookrick works</h2>
-          <button className="btn-ghost btn-icon-sm" onClick={onClose} aria-label="Close">
-            <X className="h-4 w-4" />
+        <div className="px-5 py-4 border-b border-[var(--line)] flex items-center gap-2.5 sticky top-0 bg-[var(--surface)] z-10">
+          <IconSparkle size={16} className="text-[var(--ink)]" />
+          <h2 className="text-[15px] t-display font-semibold text-[var(--ink)] flex-1">How hookrick works</h2>
+          <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close">
+            <IconClose size={14} />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <ol className="space-y-3 text-sm text-foreground/90 list-decimal pl-5 marker:text-muted-foreground">
+          <ol className="space-y-3 text-[13px] text-[var(--ink)] list-decimal pl-5 marker:text-[var(--ink-4)]">
             <li>
               A unique endpoint ID is generated the moment you load the page. Copy the URL or scan the QR code.
             </li>
             <li>
-              Fire any HTTP method at that URL. The capture server parses headers, query, cookies, body, files — then broadcasts the result via Socket.IO.
+              Fire any HTTP method at that URL. The capture server parses headers, query, cookies, body, files — then broadcasts the result over a WebSocket.
             </li>
             <li>
               Requests appear instantly in the list. Click one to inspect raw, pretty, or parsed bodies, headers, query, cookies, files, and a timeline.
             </li>
             <li>
-              Use the <span className="font-medium">Response</span> button to define a custom status, headers, and body the server returns to the caller.
+              Use <span className="ic">Response</span> to define a custom status, headers, and body the server returns to the caller.
             </li>
             <li>
-              Switch storage to <span className="font-medium">IndexedDB</span> for hundreds of MB of history. Default is <span className="font-medium">LocalStorage</span> with a 5 MB ceiling.
+              Toggle the bell to receive a browser notification whenever a new webhook arrives — even when the tab is in the background.
             </li>
           </ol>
 
           <div className="grid grid-cols-2 gap-2.5">
-            <Feature icon={Zap} title="Real-time" desc="WebSocket push from capture server" />
-            <Feature icon={Shield} title="Privacy" desc="No DB, no signup, capture never leaves your browser" />
-            <Feature icon={Database} title="Storage" desc="LocalStorage / IndexedDB" />
-            <Feature icon={Server} title="Capture" desc="Method, header, body, file, auth, UA, geo" />
+            <Feature icon={IconActivity} title="Real-time" desc="WebSocket push from capture server" />
+            <Feature icon={IconShield}   title="Privacy"   desc="No DB, no signup, capture never leaves your browser" />
+            <Feature icon={IconServer}   title="Storage"   desc="LocalStorage / IndexedDB" />
+            <Feature icon={IconLayers}   title="Capture"   desc="Method, header, body, file, auth, UA, geo" />
           </div>
 
-          <div className="rounded-md border border-border bg-muted/40 p-3 text-[11.5px] text-muted-foreground leading-relaxed">
-            <strong className="text-foreground">Privacy:</strong> sensitive headers (Authorization, API keys, cookies) are automatically masked in the UI. Raw values are still stored locally for replay purposes only.
+          <div className="rounded-md border border-[var(--line)] bg-[var(--surface-2)] p-3 text-[11.5px] text-[var(--ink-3)] leading-relaxed">
+            <strong className="text-[var(--ink)]">Privacy:</strong> sensitive headers (Authorization, API keys, cookies) are automatically masked in the UI. Raw values are still stored locally for replay purposes only.
           </div>
 
           <div className="flex items-center justify-end">
-            <button className="btn-primary btn-sm" onClick={onClose}>
-              Got it <ArrowRight className="h-3.5 w-3.5" />
+            <button className="btn btn-primary btn-sm" onClick={onClose}>
+              Got it <IconArrowRight size={12} />
             </button>
           </div>
         </div>
@@ -226,12 +360,12 @@ function HelpModal({ onClose }) {
 
 function Feature({ icon: Icon, title, desc }) {
   return (
-    <div className="rounded-md border border-border bg-card p-3">
+    <div className="rounded-md border border-[var(--line)] bg-[var(--surface)] p-3">
       <div className="flex items-center gap-2 mb-1">
-        <Icon className="h-3.5 w-3.5 text-primary" />
-        <span className="text-xs font-semibold text-foreground">{title}</span>
+        <Icon size={13} className="text-[var(--ink-3)]" />
+        <span className="text-[12px] font-semibold text-[var(--ink)]">{title}</span>
       </div>
-      <p className="text-[11px] text-muted-foreground leading-relaxed">{desc}</p>
+      <p className="text-[11px] text-[var(--ink-4)] leading-relaxed">{desc}</p>
     </div>
   );
 }

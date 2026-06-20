@@ -38,19 +38,22 @@ export function formatBytes(n) {
   return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
-// Method → color tokens (HSL var → color class for premium feel).
-// The CSS palette is theme-aware via CSS vars, so we return Tailwind
-// utilities that target those tokens via opacity-modifier backgrounds.
-export function methodColor(method) {
+// Method → CSS class for the method badge.
+// The CSS classes (.m-get, .m-post, etc.) live in index.css and resolve
+// against theme-aware CSS variables.
+export function methodClass(method) {
   switch ((method || '').toUpperCase()) {
-    case 'GET': return 'text-[hsl(var(--method-get))] bg-[hsl(var(--method-get)/0.10)] border-[hsl(var(--method-get)/0.30)]';
-    case 'POST': return 'text-[hsl(var(--method-post))] bg-[hsl(var(--method-post)/0.10)] border-[hsl(var(--method-post)/0.30)]';
-    case 'PUT': return 'text-[hsl(var(--method-put))] bg-[hsl(var(--method-put)/0.10)] border-[hsl(var(--method-put)/0.30)]';
-    case 'PATCH': return 'text-[hsl(var(--method-patch))] bg-[hsl(var(--method-patch)/0.10)] border-[hsl(var(--method-patch)/0.30)]';
-    case 'DELETE': return 'text-[hsl(var(--method-delete))] bg-[hsl(var(--method-delete)/0.10)] border-[hsl(var(--method-delete)/0.30)]';
-    default: return 'text-[hsl(var(--method-other))] bg-secondary border-border';
+    case 'GET':    return 'm-get';
+    case 'POST':   return 'm-post';
+    case 'PUT':    return 'm-put';
+    case 'PATCH':  return 'm-patch';
+    case 'DELETE': return 'm-delete';
+    default:       return 'm-other';
   }
 }
+
+// Backwards-compat alias — older callers used `methodColor`.
+export const methodColor = methodClass;
 
 export function safeJsonParse(s) {
   if (typeof s !== 'string') return null;

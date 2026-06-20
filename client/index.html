@@ -4,23 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="description" content="hookrick — by nexaric. Instant webhook inspector. Drop a request at /r/your-id and watch it appear live. No signup, no database." />
-    <meta property="og:title" content="hookrick — by nexaric" />
+    <meta name="theme-color" content="#FBFBFA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0E0E0D" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="hookrick — instant webhook inspector. Drop a request at /r/your-id and watch it appear live. No signup, no database." />
+    <meta property="og:title" content="hookrick — instant webhook inspector" />
     <meta property="og:description" content="Real-time webhook capture and inspection in your browser. No signup, no database." />
-    <title>hookrick — by nexaric</title>
+    <title>hookrick — instant webhook inspector</title>
 
-    <!-- Inter (body) -->
+    <!-- Inter (body) + JetBrains Mono (code) — primary system. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap"
+      rel="stylesheet"
+    />
 
-    <!-- Satoshi (display) — variable font from Fontshare -->
+    <!-- Geist Mono — for the table / method badges. -->
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=geist-mono@400,500,600&display=swap"
+      rel="stylesheet"
+    />
 
-    <!-- Apply persisted theme before React mounts to avoid FOUC -->
+    <!-- Apply persisted theme + viewport-fit safe-area before React mounts. -->
     <script>
       (function () {
         try {

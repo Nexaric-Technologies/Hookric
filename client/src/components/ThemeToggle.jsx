@@ -1,15 +1,19 @@
 import React from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { IconSun, IconMoon, IconMonitor } from './Icon.jsx';
 
-export default function ThemeToggle({ theme, setTheme, resolvedTheme }) {
+export default function ThemeToggle({ theme, setTheme }) {
   const options = [
-    { key: 'light', icon: Sun, label: 'Light' },
-    { key: 'system', icon: Monitor, label: 'System' },
-    { key: 'dark', icon: Moon, label: 'Dark' },
+    { key: 'light', icon: IconSun, label: 'Light' },
+    { key: 'system', icon: IconMonitor, label: 'System' },
+    { key: 'dark', icon: IconMoon, label: 'Dark' },
   ];
 
   return (
-    <div className="segmented" role="radiogroup" aria-label="Theme">
+    <div
+      className="flex items-center gap-0.5 p-0.5 rounded-md bg-[var(--surface-2)] border border-[var(--line)]"
+      role="radiogroup"
+      aria-label="Theme"
+    >
       {options.map(({ key, icon: Icon, label }) => {
         const active = theme === key;
         return (
@@ -20,9 +24,9 @@ export default function ThemeToggle({ theme, setTheme, resolvedTheme }) {
             aria-label={label}
             title={label}
             onClick={() => setTheme(key)}
-            className={`segmented-item w-8 h-8 px-0 ${active ? 'segmented-item-active' : ''}`}
+            className={`btn btn-sm btn-icon ${active ? 'btn-primary' : 'btn-ghost'}`}
           >
-            <Icon className="h-3.5 w-3.5" />
+            <Icon size={13} />
           </button>
         );
       })}

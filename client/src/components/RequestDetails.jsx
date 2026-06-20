@@ -1,17 +1,20 @@
 import React, { useMemo, useState } from 'react';
-import { methodColor, shortTime, formatBytes, copyToClipboard, highlightJson, downloadFile, buildReplaySnippets, toCsv, toTxt } from '../lib/format.js';
-import { safeJsonParse } from '../lib/format.js';
 import {
-  Copy, Check, Download, FileText, FileCode, Repeat, Hash, ListTree, Image as ImageIcon, File as FileIcon, Clock
-} from 'lucide-react';
+  methodClass, shortTime, formatBytes, copyToClipboard,
+  highlightJson, downloadFile, buildReplaySnippets, toCsv, toTxt, safeJsonParse,
+} from '../lib/format.js';
+import {
+  IconCopy, IconCheck, IconDownload, IconFileText, IconCode, IconReplay,
+  IconHash, IconQuery, IconCookie, IconFile, IconBrowser, IconImage, IconClock, IconActivity,
+} from './Icon.jsx';
 
 const TABS = [
-  { key: 'Body', icon: FileCode },
-  { key: 'Headers', icon: Hash },
-  { key: 'Query', icon: ListTree },
-  { key: 'Cookies', icon: FileText },
-  { key: 'Files', icon: FileIcon },
-  { key: 'Replay', icon: Repeat },
+  { key: 'Body',    icon: IconBody,    tint: 'chip-tint-blue' },
+  { key: 'Headers', icon: IconHeaders, tint: 'chip-tint-violet' },
+  { key: 'Query',   icon: IconQuery,   tint: 'chip-tint-green' },
+  { key: 'Cookies', icon: IconCookie,  tint: 'chip-tint-amber' },
+  { key: 'Files',   icon: IconFile,    tint: 'chip-tint-red' },
+  { key: 'Replay',  icon: IconReplay,  tint: '' },
 ];
 
 export default function RequestDetails({ request, allRequests }) {
@@ -19,12 +22,14 @@ export default function RequestDetails({ request, allRequests }) {
 
   if (!request) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-8 sm:p-12">
-        <div className="h-12 w-12 rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground mb-3">
-          <Hash className="h-5 w-5" />
+      <div className="h-full flex flex-col items-center justify-center text-center p-8 sm:p-12 empty-shell">
+        <div
+          className="h-12 w-12 rounded-md border border-[var(--line)] bg-[var(--surface)] flex items-center justify-center text-[var(--ink-4)] mb-3"
+        >
+          <IconHash size={20} />
         </div>
-        <p className="text-sm font-medium text-foreground">No request selected</p>
-        <p className="text-xs text-muted-foreground mt-1 max-w-[18rem]">
+        <p className="text-[13px] font-medium text-[var(--ink)]">No request selected</p>
+        <p className="text-[11.5px] text-[var(--ink-4)] mt-1 max-w-[18rem]">
           Fire a request to your endpoint, or pick one from the list.
         </p>
       </div>
@@ -34,71 +39,85 @@ export default function RequestDetails({ request, allRequests }) {
   return (
     <div className="flex flex-col h-full min-h-0">
       <RequestHeader request={request} allRequests={allRequests} />
-      <div className="px-3 sm:px-4 border-b border-border overflow-x-auto">
-        <div className="flex items-center gap-1 min-w-max">
+
+      {/* Tab strip */}
+      <div
+        className="px-2 sm:px-3 border-b border-[var(--line)] overflow-x-auto shrink-0"
+        role="tablist"
+      >
+        <div className="flex items-center gap-0.5 min-w-max py-1.5">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
             return (
               <button
                 key={t.key}
+                role="tab"
+                aria-selected={active}
                 onClick={() => setTab(t.key)}
-                className={`tab ${active ? 'tab-active' : ''}`}
+                className={`pane-tab ${active ? 'pane-tab-active' : ''}`}
               >
-                <Icon className="h-3.5 w-3.5 mr-1.5" />
+                <Icon size={13} />
                 {t.key}
               </button>
             );
           })}
         </div>
       </div>
+
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {tab === 'Body' ? <BodyView request={request} /> : null}
+        {tab === 'Body'    ? <BodyView    request={request} /> : null}
         {tab === 'Headers' ? <HeadersView request={request} /> : null}
-        {tab === 'Query' ? <QueryView request={request} /> : null}
+        {tab === 'Query'   ? <QueryView   request={request} /> : null}
         {tab === 'Cookies' ? <CookiesView request={request} /> : null}
-        {tab === 'Files' ? <FilesView request={request} /> : null}
-        {tab === 'Replay' ? <ReplayView request={request} /> : null}
+        {tab === 'Files'   ? <FilesView   request={request} /> : null}
+        {tab === 'Replay'  ? <ReplayView  request={request} /> : null}
       </div>
     </div>
   );
 }
 
+// --- Header ---
+
 function RequestHeader({ request, allRequests }) {
   const onExport = (kind) => {
-    if (kind === 'json') downloadFile(`hookrick-${Date.now()}.json`, JSON.stringify(allRequests, null, 2), 'application/json');
-    else if (kind === 'csv') downloadFile(`hookrick-${Date.now()}.csv`, toCsv(allRequests), 'text/csv');
-    else if (kind === 'txt') downloadFile(`hookrick-${Date.now()}.txt`, toTxt(allRequests), 'text/plain');
+    if (kind === 'json')      downloadFile(`hookrick-${Date.now()}.json`, JSON.stringify(allRequests, null, 2), 'application/json');
+    else if (kind === 'csv')  downloadFile(`hookrick-${Date.now()}.csv`,  toCsv(allRequests), 'text/csv');
+    else if (kind === 'txt')  downloadFile(`hookrick-${Date.now()}.txt`,  toTxt(allRequests), 'text/plain');
   };
 
   return (
-    <div className="px-3 sm:px-4 py-3 border-b border-border">
+    <div className="px-3 sm:px-4 py-3 border-b border-[var(--line)] shrink-0">
       <div className="flex items-center gap-2 flex-wrap mb-1.5 min-w-0">
-        <span className={`method-badge ${methodColor(request.method)}`}>{request.method}</span>
-        <span className="font-mono text-[13px] text-foreground truncate min-w-0 flex-1">
+        <span className={`method-badge ${methodClass(request.method)}`}>{request.method}</span>
+        <span className="t-mono text-[12.5px] text-[var(--ink)] truncate min-w-0 flex-1">
           {request.url}
         </span>
-        <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+        <span className="t-meta t-tabular shrink-0 inline-flex items-center gap-1">
+          <IconClock size={11} />
           {shortTime(request.receivedAt)}
         </span>
       </div>
-      <div className="flex items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground flex-wrap">
-        <span className="font-mono">{request.ip?.remote || '—'}</span>
+      <div className="flex items-center gap-x-3 gap-y-1 text-[11px] text-[var(--ink-4)] flex-wrap">
+        <span className="t-mono">{request.ip?.remote || '—'}</span>
         <span>·</span>
         <span>{request.protocol?.toUpperCase()} {request.httpVersion}</span>
         <span>·</span>
-        <span className="tabular-nums">{formatBytes(request.body?.size || 0)}</span>
+        <span className="t-tabular">{formatBytes(request.body?.size || 0)}</span>
         <span>·</span>
-        <span className="tabular-nums">{request.processingMs ?? 0}ms</span>
+        <span className="t-tabular inline-flex items-center gap-1">
+          <IconActivity size={10} />
+          {request.processingMs ?? 0}ms
+        </span>
         <span className="ml-auto flex items-center gap-1">
-          <button className="btn-ghost btn-sm" onClick={() => onExport('json')} title="Export all as JSON">
-            <Download className="h-3.5 w-3.5" /> JSON
+          <button className="btn btn-ghost btn-sm" onClick={() => onExport('json')} title="Export all as JSON">
+            <IconDownload size={12} /> JSON
           </button>
-          <button className="btn-ghost btn-sm" onClick={() => onExport('csv')} title="Export all as CSV">
-            <Download className="h-3.5 w-3.5" /> CSV
+          <button className="btn btn-ghost btn-sm" onClick={() => onExport('csv')} title="Export all as CSV">
+            <IconDownload size={12} /> CSV
           </button>
-          <button className="btn-ghost btn-sm" onClick={() => onExport('txt')} title="Export all as TXT">
-            <Download className="h-3.5 w-3.5" /> TXT
+          <button className="btn btn-ghost btn-sm" onClick={() => onExport('txt')} title="Export all as TXT">
+            <IconDownload size={12} /> TXT
           </button>
         </span>
       </div>
@@ -130,7 +149,11 @@ function BodyView({ request }) {
   return (
     <div className="p-3 sm:p-4 space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="segmented">
+        <div
+          className="flex items-center gap-0.5 p-0.5 rounded-md bg-[var(--surface-2)] border border-[var(--line)]"
+          role="radiogroup"
+          aria-label="Body view"
+        >
           {[
             { key: 'raw', label: 'Raw' },
             { key: 'pretty', label: 'Pretty', disabled: !body.prettyJson },
@@ -140,27 +163,33 @@ function BodyView({ request }) {
               key={m.key}
               onClick={() => setMode(m.key)}
               disabled={m.disabled}
-              className={`segmented-item h-7 px-2.5 text-[11.5px] ${mode === m.key ? 'segmented-item-active' : ''} disabled:opacity-40`}
+              className={`btn btn-sm ${mode === m.key ? 'btn-primary' : 'btn-ghost'} disabled:opacity-30`}
             >
               {m.label}
             </button>
           ))}
         </div>
-        <span className="chip border-border bg-secondary text-secondary-foreground">{body.kind}</span>
-        <span className="chip border-border bg-secondary text-secondary-foreground tabular-nums">{formatBytes(body.size || 0)}</span>
+        <span className="chip">{body.kind}</span>
+        <span className="chip t-tabular">{formatBytes(body.size || 0)}</span>
         <span className="ml-auto">
-          <button className="btn-outline btn-sm" onClick={onCopy}>
-            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          <button className="btn btn-outline btn-sm" onClick={onCopy}>
+            {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
             {copied ? 'Copied' : 'Copy'}
           </button>
         </span>
       </div>
 
-      <div className="rounded-md border border-border bg-muted/30 overflow-hidden">
+      <div className="rounded-md border border-[var(--line)] bg-[var(--surface-2)] overflow-hidden">
         {mode === 'parsed' && body.parsed && typeof body.parsed === 'object' ? (
-          <pre className="code p-3 max-h-[60vh] overflow-auto" dangerouslySetInnerHTML={{ __html: highlightJson(body.parsed) }} />
+          <pre
+            className="code-wrap p-3 max-h-[60vh] overflow-auto"
+            dangerouslySetInnerHTML={{ __html: highlightJson(body.parsed) }}
+          />
         ) : mode === 'pretty' && body.prettyJson ? (
-          <pre className="code p-3 max-h-[60vh] overflow-auto" dangerouslySetInnerHTML={{ __html: highlightJson(safeJsonParse(body.prettyJson)) }} />
+          <pre
+            className="code-wrap p-3 max-h-[60vh] overflow-auto"
+            dangerouslySetInnerHTML={{ __html: highlightJson(safeJsonParse(body.prettyJson)) }}
+          />
         ) : (
           <pre className="code-wrap p-3 max-h-[60vh] overflow-auto">{display}</pre>
         )}
@@ -177,15 +206,15 @@ function JsonShape({ parsed }) {
   return (
     <div className="card p-3">
       <div className="flex items-center gap-2 mb-2">
-        <ListTree className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Detected fields</h3>
-        <span className="text-[11px] text-muted-foreground">{fields.length} top-level keys</span>
+        <IconCode size={14} className="text-[var(--ink-3)]" />
+        <h3 className="text-[13px] font-semibold text-[var(--ink)]">Detected fields</h3>
+        <span className="t-meta">{fields.length} top-level keys</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
         {fields.map(([k, v]) => (
-          <div key={k} className="flex items-center gap-2 font-mono min-w-0">
-            <span className="text-foreground/80 truncate">{k}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground shrink-0">{typeName(v)}</span>
+          <div key={k} className="flex items-center gap-2 t-mono min-w-0">
+            <span className="text-[var(--ink)] truncate">{k}</span>
+            <span className="ml-auto t-meta shrink-0">{typeName(v)}</span>
           </div>
         ))}
       </div>
@@ -221,28 +250,28 @@ function HeadersView({ request }) {
     <div className="p-3 sm:p-4 space-y-3">
       <div className="flex items-center gap-2">
         <input className="input" placeholder="Filter headers" value={filter} onChange={(e) => setFilter(e.target.value)} />
-        <button className="btn-outline btn-sm" onClick={onCopy}>
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+        <button className="btn btn-outline btn-sm" onClick={onCopy}>
+          {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
           {copied ? 'Copied' : 'Copy all'}
         </button>
       </div>
-      <div className="rounded-md border border-border bg-card overflow-hidden">
-        <table className="w-full text-[12px] font-mono">
+      <div className="rounded-md border border-[var(--line)] overflow-hidden">
+        <table className="w-full text-[12px] t-mono">
           <thead>
-            <tr className="text-muted-foreground text-left border-b border-border bg-muted/40">
+            <tr className="text-[var(--ink-4)] text-left border-b border-[var(--line)] bg-[var(--surface-2)]">
               <th className="px-3 py-2 font-medium w-1/3">Name</th>
               <th className="px-3 py-2 font-medium">Value</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(([k, v]) => (
-              <tr key={k} className="border-b border-border/60 last:border-0 align-top">
-                <td className="px-3 py-2 text-muted-foreground break-all">{k}</td>
-                <td className="px-3 py-2 text-foreground break-all whitespace-pre-wrap">{typeof v === 'string' ? v : JSON.stringify(v)}</td>
+              <tr key={k} className="border-b border-[var(--line)] last:border-0 align-top">
+                <td className="px-3 py-2 text-[var(--ink-4)] break-all">{k}</td>
+                <td className="px-3 py-2 text-[var(--ink)] break-all whitespace-pre-wrap">{typeof v === 'string' ? v : JSON.stringify(v)}</td>
               </tr>
             ))}
             {filtered.length === 0 ? (
-              <tr><td colSpan="2" className="px-3 py-6 text-center text-muted-foreground">No headers match.</td></tr>
+              <tr><td colSpan="2" className="px-3 py-6 text-center text-[var(--ink-4)]">No headers match.</td></tr>
             ) : null}
           </tbody>
         </table>
@@ -253,7 +282,9 @@ function HeadersView({ request }) {
 
 function QueryView({ request }) {
   const entries = Object.entries(request.query || {});
-  if (entries.length === 0) return <div className="p-6 text-sm text-muted-foreground">No query parameters.</div>;
+  if (entries.length === 0) return (
+    <div className="p-6 text-[12.5px] text-[var(--ink-4)] text-center">No query parameters.</div>
+  );
   return (
     <div className="p-3 sm:p-4">
       <DataTable rows={entries} />
@@ -263,7 +294,9 @@ function QueryView({ request }) {
 
 function CookiesView({ request }) {
   const entries = Object.entries(request.cookies || {});
-  if (entries.length === 0) return <div className="p-6 text-sm text-muted-foreground">No cookies sent.</div>;
+  if (entries.length === 0) return (
+    <div className="p-6 text-[12.5px] text-[var(--ink-4)] text-center">No cookies sent.</div>
+  );
   return (
     <div className="p-3 sm:p-4">
       <DataTable rows={entries} />
@@ -273,19 +306,19 @@ function CookiesView({ request }) {
 
 function DataTable({ rows }) {
   return (
-    <div className="rounded-md border border-border bg-card overflow-hidden">
-      <table className="w-full text-[12px] font-mono">
+    <div className="rounded-md border border-[var(--line)] overflow-hidden">
+      <table className="w-full text-[12px] t-mono">
         <thead>
-          <tr className="text-muted-foreground text-left border-b border-border bg-muted/40">
+          <tr className="text-[var(--ink-4)] text-left border-b border-[var(--line)] bg-[var(--surface-2)]">
             <th className="px-3 py-2 font-medium">Key</th>
             <th className="px-3 py-2 font-medium">Value</th>
           </tr>
         </thead>
         <tbody>
           {rows.map(([k, v]) => (
-            <tr key={k} className="border-b border-border/60 last:border-0 align-top">
-              <td className="px-3 py-2 text-muted-foreground">{k}</td>
-              <td className="px-3 py-2 text-foreground break-all">{Array.isArray(v) ? v.join(', ') : String(v)}</td>
+            <tr key={k} className="border-b border-[var(--line)] last:border-0 align-top">
+              <td className="px-3 py-2 text-[var(--ink-4)]">{k}</td>
+              <td className="px-3 py-2 text-[var(--ink)] break-all">{Array.isArray(v) ? v.join(', ') : String(v)}</td>
             </tr>
           ))}
         </tbody>
@@ -298,7 +331,9 @@ function DataTable({ rows }) {
 
 function FilesView({ request }) {
   const files = request.body?.files || [];
-  if (files.length === 0) return <div className="p-6 text-sm text-muted-foreground">No file uploads in this request.</div>;
+  if (files.length === 0) return (
+    <div className="p-6 text-[12.5px] text-[var(--ink-4)] text-center">No file uploads in this request.</div>
+  );
   return (
     <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
       {files.map((f, i) => <FileCard key={i} file={f} />)}
@@ -314,19 +349,21 @@ function FileCard({ file }) {
   return (
     <div className="card p-3">
       <div className="flex items-center gap-2 mb-2 min-w-0">
-        {isImage ? <ImageIcon className="h-4 w-4 text-primary shrink-0" /> : isPdf ? <FileText className="h-4 w-4 text-destructive shrink-0" /> : <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />}
-        <span className="text-sm font-medium text-foreground truncate" title={file.originalName}>{file.originalName}</span>
+        {isImage ? <IconImage size={14} className="text-[var(--ink-3)] shrink-0" /> :
+         isPdf   ? <IconFileText size={14} className="text-[var(--ink-3)] shrink-0" /> :
+                   <IconFile size={14} className="text-[var(--ink-4)] shrink-0" />}
+        <span className="text-[13px] font-medium text-[var(--ink)] truncate" title={file.originalName}>{file.originalName}</span>
       </div>
       <dl className="text-[11.5px] grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1">
-        <dt className="text-muted-foreground">Type</dt><dd className="text-foreground truncate font-mono">{file.mimeType}</dd>
-        <dt className="text-muted-foreground">Size</dt><dd className="text-foreground tabular-nums">{formatBytes(file.size)}</dd>
-        <dt className="text-muted-foreground">Field</dt><dd className="text-foreground font-mono">{file.fieldName}</dd>
+        <dt className="text-[var(--ink-4)]">Type</dt><dd className="text-[var(--ink)] truncate t-mono">{file.mimeType}</dd>
+        <dt className="text-[var(--ink-4)]">Size</dt><dd className="text-[var(--ink)] t-tabular">{formatBytes(file.size)}</dd>
+        <dt className="text-[var(--ink-4)]">Field</dt><dd className="text-[var(--ink)] t-mono">{file.fieldName}</dd>
       </dl>
       {isText && file.preview ? (
-        <pre className="code-wrap mt-2 p-2 rounded-md bg-muted/40 border border-border max-h-40 overflow-auto">{file.preview}</pre>
+        <pre className="code-wrap mt-2 p-2 rounded-md bg-[var(--surface-2)] border border-[var(--line)] max-h-40 overflow-auto">{file.preview}</pre>
       ) : null}
-      {isImage ? <div className="mt-2 text-[11px] text-muted-foreground">Image preview requires server-side file proxying. Metadata captured.</div> : null}
-      {isPdf ? <div className="mt-2 text-[11px] text-muted-foreground">PDF preview requires server-side file proxying. Metadata captured.</div> : null}
+      {isImage ? <div className="mt-2 text-[11px] text-[var(--ink-4)]">Image preview requires server-side file proxying. Metadata captured.</div> : null}
+      {isPdf   ? <div className="mt-2 text-[11px] text-[var(--ink-4)]">PDF preview requires server-side file proxying. Metadata captured.</div> : null}
     </div>
   );
 }
@@ -364,23 +401,29 @@ function ReplayView({ request }) {
   return (
     <div className="p-3 sm:p-4 space-y-3">
       <div className="flex items-center gap-1 flex-wrap">
-        {langs.map((l) => (
-          <button
-            key={l.key}
-            onClick={() => setLang(l.key)}
-            className={`btn btn-sm ${lang === l.key ? 'border-primary text-primary bg-primary/10 hover:bg-primary/15' : ''}`}
-          >
-            {l.label}
-          </button>
-        ))}
+        <div
+          className="flex items-center gap-0.5 p-0.5 rounded-md bg-[var(--surface-2)] border border-[var(--line)]"
+          role="radiogroup"
+          aria-label="Snippet language"
+        >
+          {langs.map((l) => (
+            <button
+              key={l.key}
+              onClick={() => setLang(l.key)}
+              className={`btn btn-sm ${lang === l.key ? 'btn-primary' : 'btn-ghost'}`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
         <span className="ml-auto">
-          <button className="btn-outline btn-sm" onClick={onCopy}>
-            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          <button className="btn btn-outline btn-sm" onClick={onCopy}>
+            {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
             {copied ? 'Copied' : 'Copy'}
           </button>
         </span>
       </div>
-      <pre className="code rounded-md border border-border bg-muted/30 p-3 max-h-[60vh] overflow-auto whitespace-pre">{snippets[lang]}</pre>
+      <pre className="code-wrap rounded-md border border-[var(--line)] bg-[var(--surface-2)] p-3 max-h-[60vh] overflow-auto whitespace-pre">{snippets[lang]}</pre>
     </div>
   );
 }

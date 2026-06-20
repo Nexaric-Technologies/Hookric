@@ -8,6 +8,14 @@ import {
   lsLoad, lsSave, lsClear,
   idbLoadAll, idbSave, idbClear, idbIsAvailable,
 } from './storage.js';
+import {
+  fire as fireNotification,
+  isEnabled as notifEnabled,
+  setEnabled as setNotifEnabled,
+  getPermission,
+  requestPermission,
+  onNotificationClick,
+} from './notifications.js';
 
 const ENDPOINT_KEY = 'hookrick:v1:endpointId';
 const THEME_KEY = 'hookrick:v1:theme';
@@ -69,6 +77,20 @@ export function useWebhookStore() {
     body: '{"ok":true}',
   });
 
+  // Push notifications: persisted opt-in, current permission, last-fired id
+  const [notificationsOn, setNotificationsOnState] = useState(notifEnabled);
+  const [notificationPermission, setNotificationPermission] = useState(getPermission());
+
+  // Track the most recent request id so the bell can flash
+  const [lastIncomingId, setLastIncomingId] = useState(null);
+  // Bump counter when a new request lands (used by the bell to animate)
+  const [incomingPulse, setIncomingPulse] = useState(0);
+
+  // Remember the most recent request in a ref so the visibility-change
+  // handler can fire a notification for the *just-arrived* request even
+  // if the user backgrounded the tab mid-tick.
+  const lastRequestRef = useRef(null);
+
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
 
@@ -115,6 +137,7 @@ export function useWebhookStore() {
     joinRoom(endpointId);
     const off = onNewRequest((req) => {
       if (req.endpointId !== endpointId) return;
+      lastRequestRef.current = req;
       setRequests((prev) => {
         const next = [req, ...prev].slice(0, 5000);
         try {
@@ -126,6 +149,24 @@ export function useWebhookStore() {
         } catch { /* noop */ }
         return next;
       });
+      // Auto-focus the freshly-arrived request on desktop, but NOT on
+      // mobile (where it would steal focus from the active view).
+      if (typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
+        setActiveId(req.id);
+      }
+      // Browser push notification (only fires when tab is hidden and
+      // the user opted in).
+      if (fireNotification(req)) {
+        setLastIncomingId(req.id);
+        setIncomingPulse((n) => n + 1);
+      } else {
+        // Even when we don't fire a notification, still bump the pulse
+        // when the tab is hidden, so the bell pulses subtly.
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+          setLastIncomingId(req.id);
+          setIncomingPulse((n) => n + 1);
+        }
+      }
     });
 
     // Re-push the response config after every (re)connect so a network
@@ -197,6 +238,40 @@ export function useWebhookStore() {
     }
   }, [storageMode, endpointId]);
 
+  // Toggle browser notifications: opt in → request OS permission.
+  const toggleNotifications = useCallback(async () => {
+    if (notificationsOn) {
+      setNotifEnabled(false);
+      setNotificationsOnState(false);
+      return;
+    }
+    const result = await requestPermission();
+    setNotificationPermission(result);
+    if (result === 'granted') {
+      setNotifEnabled(true);
+      setNotificationsOnState(true);
+      // Send a test notification so the user knows it works
+      try {
+        new Notification('hookrick alerts enabled', {
+          body: 'You will be notified for every incoming webhook.',
+          silent: false,
+          icon: '/favicon.svg',
+        });
+      } catch { /* noop */ }
+    } else {
+      setNotifEnabled(false);
+      setNotificationsOnState(false);
+    }
+  }, [notificationsOn]);
+
+  // Wire the notification click handler so the active request jumps.
+  useEffect(() => {
+    const off = onNotificationClick((reqId) => {
+      if (reqId) setActiveId(reqId);
+    });
+    return off;
+  }, []);
+
   return {
     endpointId,
     requests: filtered,
@@ -216,5 +291,10 @@ export function useWebhookStore() {
     theme,
     setTheme,
     resolvedTheme,
+    notificationsOn,
+    notificationPermission,
+    toggleNotifications,
+    incomingPulse,
+    lastIncomingId,
   };
 }

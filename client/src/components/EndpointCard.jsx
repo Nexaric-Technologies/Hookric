@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { Copy, Check, QrCode, RotateCcw, Link2 } from 'lucide-react';
+import { IconCopy, IconCheck, IconQR, IconRotate, IconLink } from './Icon.jsx';
 import { copyToClipboard, generateId } from '../lib/format.js';
 import { apiBase } from '../lib/apiBase.js';
 
@@ -11,9 +11,6 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [qrData, setQrData] = useState('');
 
-  // In production the Worker lives on a different host than the page.
-  // apiBase() resolves the right origin — set via VITE_HOOKRICK_API at
-  // build time, or fall back to same-origin in dev.
   const base = apiBase();
   const url = `${base}/r/hook-agent/${endpointId}`;
   const urlPrefix = `${base}/r/hook-agent/`;
@@ -23,8 +20,8 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
     if (!qrOpen) return;
     const root = document.documentElement;
     const dark = root.getAttribute('data-theme') === 'dark' || root.classList.contains('dark');
-    const darkColor = dark ? '#f8fafc' : '#0f172a';
-    const lightColor = dark ? '#0b1120' : '#ffffff';
+    const darkColor = dark ? '#F5F4F1' : '#111111';
+    const lightColor = dark ? '#161614' : '#FFFFFF';
     let cancelled = false;
     (async () => {
       try {
@@ -53,71 +50,68 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
 
   return (
     <div className="card p-3 sm:p-4">
-      <div className="flex items-center gap-2 mb-2.5">
-        <span className="text-[10.5px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">Your endpoint</span>
-        <span
-          className={`chip ${
-            connected
-              ? 'border-[hsl(var(--method-get)/0.4)] text-[hsl(var(--method-get))] bg-[hsl(var(--method-get)/0.10)]'
-              : 'border-[hsl(var(--method-put)/0.4)] text-[hsl(var(--method-put))] bg-[hsl(var(--method-put)/0.10)]'
-          }`}
-          title={connected ? 'Connected to capture server' : 'Connecting…'}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-[hsl(var(--method-get))] animate-pulse-soft' : 'bg-[hsl(var(--method-put))] animate-pulse-soft'}`} />
-          {connected ? 'Live' : 'Connecting'}
-        </span>
-        <span className="ml-auto hidden sm:inline-flex items-center gap-1 text-[10.5px] text-muted-foreground">
-          <Link2 className="h-3 w-3" /> Auto-generated · no signup
+      {/* Header row */}
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="t-eyebrow">Endpoint</span>
+          <span
+            className={`chip ${connected ? 'chip-tint-green' : 'chip-tint-amber'}`}
+            title={connected ? 'Connected to capture server' : 'Connecting…'}
+          >
+            <span className={`conn-dot ${connected ? 'live' : ''}`} />
+            {connected ? 'Live' : 'Connecting'}
+          </span>
+        </div>
+        <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-[var(--ink-4)]">
+          <IconLink size={12} /> Auto-generated · no signup
         </span>
       </div>
 
+      {/* URL row */}
       <div className="flex flex-col sm:flex-row items-stretch gap-2">
-        <div className="flex-1 flex items-center gap-1.5 px-3 h-10 rounded-md border border-input bg-muted/40 font-mono text-[13px] overflow-hidden min-w-0">
-          <span className="text-muted-foreground shrink-0 truncate">{urlPrefix}</span>
-          <span className="truncate text-foreground">{endpointId}</span>
+        <div className="flex-1 flex items-center gap-1.5 px-3 h-10 rounded-md border border-[var(--line)] bg-[var(--surface-2)] font-mono text-[12.5px] overflow-hidden min-w-0">
+          <span className="text-[var(--ink-4)] shrink-0 truncate">{urlPrefix}</span>
+          <span className="truncate text-[var(--ink)]">{endpointId}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={onCopy}
-            title="Copy URL"
-            className="btn-primary btn-sm sm:h-9 sm:px-3 flex-1 sm:flex-initial"
-          >
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            <span className="hidden xs:inline sm:inline">{copied ? 'Copied' : 'Copy URL'}</span>
+          <button onClick={onCopy} title="Copy URL" className="btn btn-primary btn-sm sm:h-10 sm:px-3 flex-1 sm:flex-initial">
+            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+            <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy URL'}</span>
           </button>
           <button
             onClick={() => setQrOpen((v) => !v)}
             title="QR code"
             aria-label="Toggle QR code"
-            className="btn-outline btn-icon"
+            aria-expanded={qrOpen}
+            className="btn btn-outline btn-icon"
           >
-            <QrCode className="h-4 w-4" />
+            <IconQR size={16} />
           </button>
           <button
             onClick={onRegen}
             title="Generate new endpoint"
             aria-label="Generate new endpoint"
-            className="btn-outline btn-icon"
+            className="btn btn-outline btn-icon"
           >
-            <RotateCcw className="h-4 w-4" />
+            <IconRotate size={16} />
           </button>
         </div>
       </div>
 
+      {/* QR drawer — inline expand, no overlay */}
       {qrOpen ? (
-        <div className="mt-3 p-3 rounded-md border border-border bg-muted/40 flex flex-col sm:flex-row items-center sm:items-start gap-4 animate-fade-in">
-          <div className="h-32 w-32 rounded-md bg-background border border-border flex items-center justify-center shrink-0 overflow-hidden">
+        <div className="mt-3 p-3 rounded-md border border-[var(--line)] bg-[var(--surface-2)] flex flex-col sm:flex-row items-center sm:items-start gap-4 anim-rise">
+          <div className="h-32 w-32 rounded-md bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center shrink-0 overflow-hidden">
             {qrData ? (
-              <img src={qrData} alt="QR code" className="h-full w-full object-contain" />
+              <img src={qrData} alt="QR code for webhook endpoint" className="h-full w-full object-contain" />
             ) : (
-              <div className="h-full w-full bg-muted animate-pulse" />
+              <div className="h-full w-full bg-[var(--surface-2)] animate-pulse-soft" />
             )}
           </div>
-          <div className="text-xs text-muted-foreground leading-relaxed">
-            <p className="text-foreground font-medium mb-1">Scan to test</p>
+          <div className="text-xs text-[var(--ink-3)] leading-relaxed">
+            <p className="text-[var(--ink)] font-medium mb-1 t-display" style={{ fontSize: '15px', letterSpacing: '-0.01em' }}>Scan to test</p>
             <p>
-              Open the camera on a phone or any QR reader to fire a request at this
-              endpoint. Useful for testing physical-device or POS webhooks.
+              Open the camera on a phone or any QR reader to fire a request at this endpoint. Useful for testing physical-device or POS webhooks.
             </p>
           </div>
         </div>
