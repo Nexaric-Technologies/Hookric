@@ -46,16 +46,13 @@ export default function ParsedAnalysis({ request }) {
   const analysis = request.analysis || {};
 
   return (
-    // Outer panel: padding + a fallback outer vertical scroll in
-    // case the sum of card max-heights + gaps exceeds the column
-    // height. Each section card is its own vertical scroll surface
-    // so you can scroll Network, IP & location, TLS, etc.
-    // independently — the outer scroll only kicks in as a last
-    // resort on very short viewports.
+    // The right column is one vertical scroll surface — all
+    // section cards (Network, IP & location, TLS, …) sit inside
+    // and scroll together as a single unit. No per-card scroll.
     <div className="h-full px-4 py-4 text-sm overflow-y-auto">
       <div className="space-y-4">
         {/* Network */}
-        <Section icon={Globe} title="Network" maxH="max-h-56">
+        <Section icon={Globe} title="Network">
           <KV k="Method" v={request.method} badge={methodBadgeClass(request.method)} />
           <ScrollKV k="URL" v={request.url} />
           <ScrollKV k="Path" v={request.path} />
@@ -68,7 +65,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* IP & Geo */}
-        <Section icon={MapPin} title="IP & location" maxH="max-h-96">
+        <Section icon={MapPin} title="IP & location">
           <ScrollKV k="Source IP" v={ip.remote} />
           <ScrollKV k="X-Forwarded-For" v={ip.xForwardedFor} />
           <ScrollKV k="Real IP" v={ip.realIp} />
@@ -84,7 +81,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* TLS */}
-        <Section icon={Server} title="TLS" maxH="max-h-44">
+        <Section icon={Server} title="TLS">
           <KV k="Secure" v={request.tls?.secure ? 'yes' : 'no'} />
           <ScrollKV k="Version" v={request.tls?.version || '—'} />
           <ScrollKV k="Cipher" v={request.tls?.cipher || '—'} />
@@ -92,7 +89,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* User agent */}
-        <Section icon={Fingerprint} title="User agent" maxH="max-h-72">
+        <Section icon={Fingerprint} title="User agent">
           <KV k="Browser" v={ua.browser ? `${ua.browser}${ua.browserVersion ? ' ' + ua.browserVersion : ''}` : null} />
           <KV k="Engine" v={ua.engine ? `${ua.engine}${ua.engineVersion ? ' ' + ua.engineVersion : ''}` : null} />
           <KV k="OS" v={ua.os ? `${ua.os}${ua.osVersion ? ' ' + ua.osVersion : ''}` : null} />
@@ -117,7 +114,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* Authentication */}
-        <Section icon={Shield} title="Authentication" maxH="max-h-64">
+        <Section icon={Shield} title="Authentication">
           {auth.basic || auth.bearer || auth.apiKey ? (
             <>
               {auth.basic ? (
@@ -157,7 +154,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* Webhook signatures */}
-        <Section icon={KeyRound} title="Webhook signatures" maxH="max-h-44">
+        <Section icon={KeyRound} title="Webhook signatures">
           {request.signatures?.length ? (
             <ul className="space-y-1.5">
               {request.signatures.map((s, i) => (
@@ -182,7 +179,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* Body */}
-        <Section icon={Layers} title="Body analysis" maxH="max-h-96">
+        <Section icon={Layers} title="Body analysis">
           <KV k="Kind" v={body.kind} badge={body.kind === 'json' ? 'method-post' : body.kind === 'multipart' ? 'method-patch' : null} />
           <ScrollKV k="Content-Type" v={body.contentType || '—'} />
           <KV k="Size" v={formatBytes(body.size || 0)} />
@@ -211,7 +208,7 @@ export default function ParsedAnalysis({ request }) {
         </Section>
 
         {/* Timeline (last — keeps a comfortable gap to the panel bottom) */}
-        <Section icon={Clock} title="Timeline" maxH="max-h-56">
+        <Section icon={Clock} title="Timeline">
           <ul className="space-y-1 text-[12px]">
             {(request.timeline || []).map((t, i) => (
               <li key={i} className="flex items-center gap-2 font-mono">
@@ -233,25 +230,21 @@ export default function ParsedAnalysis({ request }) {
 // Sub-components -------------------------------------------------------
 
 // Inner sections are framed boxes that live entirely inside the
-// "Parsed analysis" panel. Each card is its own scroll surface —
-// the body is height-bounded via `maxH` (Tailwind class) and uses
-// both `overflow-x-auto` and `overflow-y-auto`, so:
-//   - long URLs / UA strings / JSON paths scroll horizontally
-//     within the card without breaking the page layout;
-//   - long lists (JSON shape, JWT claims, raw UA) scroll
-//     vertically within the card so each card stays compact
-//     and you can scan headers in the right column without
-//     losing your place in the request list on the left.
-function Section({ icon: Icon, title, children, maxH = 'max-h-64' }) {
+// "Parsed analysis" panel. The panel itself is the single scroll
+// surface (one vertical scrollbar on the right column); the
+// section cards are flat, no per-card scroll. Long values still
+// scroll horizontally inside <ScrollKV> / <ScrollBlock>, but the
+// column scrolls as a single unit vertically.
+function Section({ icon: Icon, title, children }) {
   return (
-    <section className={`rounded-md border border-border/60 bg-card/40 overflow-hidden min-w-0 ${maxH} flex flex-col`}>
+    <section className="rounded-md border border-border/60 bg-card/40 overflow-hidden min-w-0">
       <header className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 bg-muted/30 shrink-0">
         <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground leading-none">
           {title}
         </h3>
       </header>
-      <div className="px-3 py-2.5 space-y-1 overflow-x-auto overflow-y-auto flex-1 min-h-0">
+      <div className="px-3 py-2.5 space-y-1 overflow-x-auto overflow-y-hidden">
         {children}
       </div>
     </section>
