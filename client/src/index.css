@@ -150,6 +150,93 @@
     @apply rounded-md border bg-secondary/40 text-secondary-foreground;
   }
 
+  /* -------------------------------------------------------------------------
+     Awwwards-tier primitives — the "Double-Bezel" (Doppelrand) architecture
+     and motion vocabulary. The right-column "Parsed analysis" cards use
+     these so they read as physical, machined hardware, not flat boxes.
+  ------------------------------------------------------------------------- */
+
+  /* The outer shell of a Double-Bezel card: a hairline ring + a 1.5px
+     inset padding (the "tray" the inner core sits in) + a large
+     squircle radius. The inner core provides the contrasting surface. */
+  .bezel-shell {
+    @apply rounded-bezel-outer p-[1.5px] ring-1 ring-black/[0.06] dark:ring-white/[0.08]
+           bg-gradient-to-b from-black/[0.04] via-transparent to-black/[0.02]
+           dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]
+           shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset,0_-1px_0_0_rgba(0,0,0,0.04)_inset];
+  }
+  .bezel-core {
+    @apply rounded-bezel-inner overflow-hidden min-w-0
+           bg-gradient-to-b from-white/[0.02] to-transparent
+           shadow-[inset_0_1px_1px_rgba(255,255,255,0.06),inset_0_-1px_0_rgba(0,0,0,0.04)]
+           dark:from-white/[0.03];
+  }
+
+  /* Glass surface used on the right-column header strip and the
+     mobile tab bar. The blur is fixed (header is non-scrolling). */
+  .glass {
+    @apply bg-white/[0.04] dark:bg-white/[0.03] backdrop-blur-xl
+           ring-1 ring-white/[0.06] dark:ring-white/[0.06];
+  }
+  .glass-strong {
+    @apply bg-white/[0.06] dark:bg-white/[0.05] backdrop-blur-2xl
+           ring-1 ring-white/[0.08] dark:ring-white/[0.08];
+  }
+
+  /* Entry animation: heavy fade-up + brief blur. Apply via the
+     `anim-rise` class. Respects `prefers-reduced-motion`. */
+  .anim-rise {
+    animation: rise 700ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+  .anim-rise-1 { animation-delay: 40ms; }
+  .anim-rise-2 { animation-delay: 80ms; }
+  .anim-rise-3 { animation-delay: 120ms; }
+  .anim-rise-4 { animation-delay: 160ms; }
+  .anim-rise-5 { animation-delay: 200ms; }
+  .anim-rise-6 { animation-delay: 240ms; }
+  .anim-rise-7 { animation-delay: 280ms; }
+  .anim-rise-8 { animation-delay: 320ms; }
+
+  /* "Magnetic" hover: applies a tiny lift + inset highlight. Use on
+     any clickable / focusable surface that should feel physical. */
+  .magnetic {
+    @apply transition-all duration-500 ease-spring
+           hover:-translate-y-[1px] hover:shadow-[0_4px_16px_-8px_rgba(0,0,0,0.18),inset_0_1px_0_0_rgba(255,255,255,0.08)]
+           active:translate-y-0 active:duration-150;
+  }
+
+  /* Eyebrow tag — the microscopic pill that precedes headings. */
+  .eyebrow {
+    @apply inline-flex items-center gap-1.5 rounded-island
+           px-2.5 py-1 text-[9.5px] uppercase tracking-[0.18em] font-medium
+           text-muted-foreground
+           bg-white/[0.04] dark:bg-white/[0.04]
+           ring-1 ring-black/[0.06] dark:ring-white/[0.08];
+  }
+
+  /* Radial glow used on the right column background — a single
+     subtle orb that gives the panel a sense of depth without
+     burning GPU. Fixed-position pseudo so it never repaints. */
+  .orb-bg {
+    position: relative;
+  }
+  .orb-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(420px 280px at 8% -10%,  hsl(var(--primary) / 0.10), transparent 60%),
+      radial-gradient(360px 240px at 96% 110%, hsl(160 60% 50% / 0.06),  transparent 60%);
+    border-radius: inherit;
+  }
+  .orb-bg > * { position: relative; z-index: 1; }
+
+  /* Spring-eased default for any element that opts in. Keeps
+     existing utility transitions working but smooths them. */
+  .ease-spring { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+
   .btn {
     @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
            border border-transparent bg-secondary text-secondary-foreground
@@ -252,3 +339,19 @@
 
 /* Small utility tweaks for keyboard focus on icon-only buttons */
 button:focus-visible, a:focus-visible { outline: none; }
+
+/* ---------------------------------------------------------------------------
+   Reduced motion — kill all entry animations for users who opt out.
+   Keeps the UI fully functional, just static.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise,
+  .anim-rise-1, .anim-rise-2, .anim-rise-3, .anim-rise-4,
+  .anim-rise-5, .anim-rise-6, .anim-rise-7, .anim-rise-8,
+  .animate-rise, .animate-shimmer, .animate-pulse-soft {
+    animation: none !important;
+  }
+  .magnetic, .ease-spring, .bezel-shell, .bezel-core {
+    transition: none !important;
+  }
+}

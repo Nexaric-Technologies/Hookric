@@ -85,12 +85,42 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.96)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        // Awwwards-tier: gentle, heavy fade-up with a brief blur
+        // for elements entering the viewport. GPU-safe — only
+        // animates `transform` and `opacity`. Use via the
+        // `.anim-rise` utility (see index.css).
+        'rise': {
+          '0%':   { opacity: '0', transform: 'translate3d(0, 16px, 0)', filter: 'blur(6px)' },
+          '100%': { opacity: '1', transform: 'translate3d(0, 0, 0)',    filter: 'blur(0)'   },
+        },
+        // Soft shimmer for the "analyzing" placeholder state
+        'shimmer': {
+          '0%':   { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
         'pulse-soft': 'pulse-soft 1.6s ease-in-out infinite',
-        'fade-in': 'fade-in 200ms ease-out',
-        'fade-in-fast': 'fade-in-fast 150ms ease-out',
-        'scale-in': 'scale-in 180ms ease-out',
+        'fade-in': 'fade-in 200ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'fade-in-fast': 'fade-in-fast 150ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'scale-in': 'scale-in 180ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'rise': 'rise 700ms cubic-bezier(0.32, 0.72, 0, 1) both',
+        'shimmer': 'shimmer 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+      },
+      // Custom spring easing curves for the agency build.
+      // Use as `ease-spring` etc. on any transition.
+      transitionTimingFunction: {
+        'spring':   'cubic-bezier(0.32, 0.72, 0, 1)',     // Apple/Linear signature
+        'spring-2': 'cubic-bezier(0.16, 1, 0.3, 1)',       // expo-out for entrances
+        'magnetic': 'cubic-bezier(0.4, 0, 0.2, 1)',        // material-style for hovers
+      },
+      borderRadius: {
+        // Exaggerated squircles for the Double-Bezel technique.
+        // - `bezel-outer`: the outer shell radius (e.g. 2rem = 32px)
+        // - `bezel-inner`: the inner core radius (shell - padding)
+        'bezel-outer': '1.75rem',  // 28px outer shell
+        'bezel-inner': 'calc(1.75rem - 0.375rem)', // 22px inner core
+        'island':      '9999px',   // fully rounded pills / islands
       },
     },
   },

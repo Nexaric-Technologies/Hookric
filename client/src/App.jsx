@@ -63,10 +63,21 @@ export default function App() {
             <RequestDetails request={store.active} allRequests={store.requests} />
           </div>
 
-          <div className={`card min-h-0 flex flex-col ${mobileView === 'analysis' ? '' : 'hidden md:block'}`}>
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2 shrink-0">
-              <Zap className="h-3.5 w-3.5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Parsed analysis</span>
+          <div className={`card min-h-0 flex flex-col overflow-hidden orb-bg ${mobileView === 'analysis' ? '' : 'hidden md:block'}`}>
+            <div className="px-4 py-3 border-b border-border/60 flex items-center gap-2.5 shrink-0 glass">
+              <span className="eyebrow">
+                <Zap className="h-2.5 w-2.5 text-primary" />
+                insight
+              </span>
+              <span className="text-sm font-display font-semibold text-foreground tracking-tight">
+                Parsed analysis
+              </span>
+              {store.active ? (
+                <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-muted-foreground tabular-nums">
+                  <span className="h-1.5 w-1.5 rounded-full bg-method-get animate-pulse-soft" />
+                  live
+                </span>
+              ) : null}
             </div>
             <div className="flex-1 min-h-0">
               <ParsedAnalysis request={store.active} />
@@ -75,12 +86,15 @@ export default function App() {
         </div>
       </main>
 
-      {/* Mobile bottom tab strip */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="max-w-[1600px] mx-auto grid grid-cols-3 gap-1 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-          <MobileTab active={mobileView === 'list'} onClick={() => setMobileView('list')} count={store.totalCount}>Requests</MobileTab>
-          <MobileTab active={mobileView === 'detail'} onClick={() => setMobileView('detail')} disabled={!store.active}>Details</MobileTab>
-          <MobileTab active={mobileView === 'analysis'} onClick={() => setMobileView('analysis')} disabled={!store.active}>Analysis</MobileTab>
+      {/* Mobile bottom tab strip — floating glass island with rounded
+          bezel, separated from the screen edge to feel "machined". */}
+      <nav className="md:hidden fixed bottom-3 inset-x-3 z-30">
+        <div className="glass-strong rounded-bezel-outer shadow-pop p-1.5">
+          <div className="grid grid-cols-3 gap-1">
+            <MobileTab active={mobileView === 'list'} onClick={() => setMobileView('list')} count={store.totalCount}>Requests</MobileTab>
+            <MobileTab active={mobileView === 'detail'} onClick={() => setMobileView('detail')} disabled={!store.active}>Details</MobileTab>
+            <MobileTab active={mobileView === 'analysis'} onClick={() => setMobileView('analysis')} disabled={!store.active}>Analysis</MobileTab>
+          </div>
         </div>
       </nav>
 
@@ -93,13 +107,15 @@ function Header({ onHelp, theme, setTheme, resolvedTheme }) {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="max-w-[1600px] mx-auto px-3 sm:px-4 h-14 flex items-center gap-2 sm:gap-3">
-        <a className="flex items-center gap-2 group" href="/" onClick={(e) => e.preventDefault()}>
-          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-glow">
-            <Webhook className="h-4 w-4" />
+        <a className="flex items-center gap-2.5 group" href="/" onClick={(e) => e.preventDefault()}>
+          <div className="bezel-shell p-[1.5px] magnetic">
+            <div className="bezel-core w-8 h-8 flex items-center justify-center bg-primary text-primary-foreground">
+              <Webhook className="h-3.5 w-3.5" strokeWidth={1.5} />
+            </div>
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-[15px] font-display font-bold text-foreground tracking-tight">hookrick</span>
-            <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-medium">by nexaric</span>
+            <span className="text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground/80 font-medium">by nexaric</span>
           </div>
         </a>
 
@@ -134,13 +150,17 @@ function MobileTab({ active, onClick, disabled, count, children }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`relative h-11 rounded-md text-sm font-medium transition-colors
-        ${active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'}
-        disabled:opacity-40 disabled:pointer-events-none`}
+      className={`relative h-11 rounded-bezel-inner text-[13px] font-medium
+        transition-all duration-500 ease-spring
+        ${active
+          ? 'bg-foreground text-background shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_4px_12px_-4px_rgba(0,0,0,0.3)]'
+          : 'text-muted-foreground hover:text-foreground active:scale-[0.98]'}
+        disabled:opacity-30 disabled:pointer-events-none`}
     >
       {children}
       {count > 0 ? (
-        <span className="ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-semibold rounded-full bg-secondary text-secondary-foreground tabular-nums">
+        <span className={`ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-[10px] font-semibold rounded-full tabular-nums
+          ${active ? 'bg-background/20 text-background' : 'bg-white/[0.08] text-foreground/80'}`}>
           {count}
         </span>
       ) : null}

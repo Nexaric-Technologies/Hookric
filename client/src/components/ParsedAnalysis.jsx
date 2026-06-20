@@ -1,20 +1,11 @@
 import React from 'react';
 import {
   Globe, Server, Shield, KeyRound, Fingerprint, Clock, Layers,
-  MapPin, Bot, CheckCircle2, XCircle, Calendar,
+  MapPin, Bot, CheckCircle2, XCircle, Calendar, ArrowUpRight, Sparkles,
 } from 'lucide-react';
 import { formatBytes } from '../lib/format.js';
 
 // Map helpers ----------------------------------------------------------
-
-function locationLine(ip) {
-  if (!ip) return null;
-  const parts = [];
-  if (ip.city) parts.push(ip.city);
-  if (ip.region) parts.push(ip.region);
-  if (ip.country) parts.push(ip.country);
-  return parts.length ? parts.join(', ') : null;
-}
 
 function mapUrl(ip) {
   if (!ip?.latitude || !ip?.longitude) return null;
@@ -29,15 +20,21 @@ function fmtCoord(v) {
 }
 
 // Main component -------------------------------------------------------
+//
+// The right column is the single vertical scroll surface. Inside it,
+// each section is a Double-Bezel "machined hardware" card: outer
+// shell (hairline ring + 1.5px tray padding) wrapping an inner core
+// (squircle radius + inset highlight). Each card fades up + blurs
+// in with a staggered delay when a new request is selected.
 
 export default function ParsedAnalysis({ request }) {
   if (!request) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground text-center">
-        Select a request to see parsed analysis.
-      </div>
-    );
+    return <AnalysisPlaceholder />;
   }
+
+  // Re-keying on request.id re-mounts every section so the CSS
+  // `rise` animation replays each time the user clicks a request.
+  const animKey = request.id;
 
   const ip = request.ip || {};
   const ua = request.userAgent || {};
@@ -46,13 +43,23 @@ export default function ParsedAnalysis({ request }) {
   const analysis = request.analysis || {};
 
   return (
-    // The right column is one vertical scroll surface — all
-    // section cards (Network, IP & location, TLS, …) sit inside
-    // and scroll together as a single unit. No per-card scroll.
-    <div className="h-full px-4 py-4 text-sm overflow-y-auto">
-      <div className="space-y-4">
-        {/* Network */}
-        <Section icon={Globe} title="Network">
+    <div className="h-full overflow-y-auto orb-bg">
+      <div className="px-4 py-5 text-sm space-y-3.5 relative">
+        {/* Eyebrow strip — sits above the bento, gives the column
+            a magazine-masthead feel. */}
+        <div
+          key={`${animKey}-masthead`}
+          className="anim-rise flex items-center justify-between gap-2 pb-1"
+        >
+          <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/80 font-medium">
+            request · {String(request.method || '?').toUpperCase()}
+          </span>
+          <span className="text-[10px] text-muted-foreground/60 tabular-nums font-mono">
+            {request.processingMs ?? 0}ms
+          </span>
+        </div>
+
+        <Section key={`${animKey}-net`} icon={Globe} title="Network" delay={1}>
           <KV k="Method" v={request.method} badge={methodBadgeClass(request.method)} />
           <ScrollKV k="URL" v={request.url} />
           <ScrollKV k="Path" v={request.path} />
@@ -64,8 +71,7 @@ export default function ParsedAnalysis({ request }) {
           <KV k="Secure" v={request.secure ? 'yes' : 'no'} />
         </Section>
 
-        {/* IP & Geo */}
-        <Section icon={MapPin} title="IP & location">
+        <Section key={`${animKey}-ip`} icon={MapPin} title="IP & location" delay={2}>
           <ScrollKV k="Source IP" v={ip.remote} />
           <ScrollKV k="X-Forwarded-For" v={ip.xForwardedFor} />
           <ScrollKV k="Real IP" v={ip.realIp} />
@@ -80,16 +86,14 @@ export default function ParsedAnalysis({ request }) {
           <CoordRow ip={ip} />
         </Section>
 
-        {/* TLS */}
-        <Section icon={Server} title="TLS">
+        <Section key={`${animKey}-tls`} icon={Server} title="TLS" delay={3}>
           <KV k="Secure" v={request.tls?.secure ? 'yes' : 'no'} />
           <ScrollKV k="Version" v={request.tls?.version || '—'} />
           <ScrollKV k="Cipher" v={request.tls?.cipher || '—'} />
           <KV k="Client cert" v={request.tls?.clientAuth ? 'presented' : '—'} />
         </Section>
 
-        {/* User agent */}
-        <Section icon={Fingerprint} title="User agent">
+        <Section key={`${animKey}-ua`} icon={Fingerprint} title="User agent" delay={4}>
           <KV k="Browser" v={ua.browser ? `${ua.browser}${ua.browserVersion ? ' ' + ua.browserVersion : ''}` : null} />
           <KV k="Engine" v={ua.engine ? `${ua.engine}${ua.engineVersion ? ' ' + ua.engineVersion : ''}` : null} />
           <KV k="OS" v={ua.os ? `${ua.os}${ua.osVersion ? ' ' + ua.osVersion : ''}` : null} />
@@ -102,19 +106,19 @@ export default function ParsedAnalysis({ request }) {
           <KV k="Detected" v={ua.detected} />
           <KV k="Bot" v={ua.bot ? 'likely' : 'no'} badge={ua.bot ? 'method-put' : 'method-get'} icon={ua.bot ? Bot : CheckCircle2} />
           {ua.raw ? (
-            <details className="pt-1.5 mt-1.5 border-t border-border/60">
-              <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
+            <details className="group/ua pt-2 mt-1.5 border-t border-border/40">
+              <summary className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground cursor-pointer hover:text-foreground select-none transition-colors duration-500 ease-spring">
+                <span className="inline-block transition-transform duration-500 ease-spring group-open/ua:rotate-90 text-foreground/70">▸</span>
                 Raw UA string
               </summary>
-              <ScrollBlock className="mt-1.5 font-mono text-[11px] text-foreground/80 p-2 rounded-md border border-border bg-muted/40 whitespace-pre">
+              <ScrollBlock className="mt-2 font-mono text-[11px] text-foreground/85 p-2.5 rounded-bezel-inner bg-black/[0.03] dark:bg-white/[0.03] ring-1 ring-black/[0.05] dark:ring-white/[0.05] whitespace-pre anim-rise-2">
                 {ua.raw}
               </ScrollBlock>
             </details>
           ) : null}
         </Section>
 
-        {/* Authentication */}
-        <Section icon={Shield} title="Authentication">
+        <Section key={`${animKey}-auth`} icon={Shield} title="Authentication" delay={5}>
           {auth.basic || auth.bearer || auth.apiKey ? (
             <>
               {auth.basic ? (
@@ -130,11 +134,12 @@ export default function ParsedAnalysis({ request }) {
                   <KV k="JWT" v={auth.bearer.claims ? 'yes' : 'no'} />
                   {auth.bearer.expires ? <KV k="JWT expires" v={auth.bearer.expires} /> : null}
                   {auth.bearer.claims ? (
-                    <details className="pt-1.5 mt-1.5 border-t border-border/60">
-                      <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
+                    <details className="group/jwt pt-2 mt-1.5 border-t border-border/40">
+                      <summary className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground cursor-pointer hover:text-foreground select-none transition-colors duration-500 ease-spring">
+                        <span className="inline-block transition-transform duration-500 ease-spring group-open/jwt:rotate-90 text-foreground/70">▸</span>
                         JWT claims
                       </summary>
-                      <ScrollBlock as="pre" className="code mt-1.5 p-2 rounded-md border border-border bg-muted/40 max-h-40 text-[11px]">
+                      <ScrollBlock as="pre" className="code mt-2 p-2.5 rounded-bezel-inner bg-black/[0.03] dark:bg-white/[0.03] ring-1 ring-black/[0.05] dark:ring-white/[0.05] max-h-44 text-[11px] anim-rise-2">
                         {JSON.stringify(auth.bearer.claims, null, 2)}
                       </ScrollBlock>
                     </details>
@@ -153,8 +158,7 @@ export default function ParsedAnalysis({ request }) {
           )}
         </Section>
 
-        {/* Webhook signatures */}
-        <Section icon={KeyRound} title="Webhook signatures">
+        <Section key={`${animKey}-sig`} icon={KeyRound} title="Webhook signatures" delay={6}>
           {request.signatures?.length ? (
             <ul className="space-y-1.5">
               {request.signatures.map((s, i) => (
@@ -178,8 +182,7 @@ export default function ParsedAnalysis({ request }) {
           )}
         </Section>
 
-        {/* Body */}
-        <Section icon={Layers} title="Body analysis">
+        <Section key={`${animKey}-body`} icon={Layers} title="Body analysis" delay={7}>
           <KV k="Kind" v={body.kind} badge={body.kind === 'json' ? 'method-post' : body.kind === 'multipart' ? 'method-patch' : null} />
           <ScrollKV k="Content-Type" v={body.contentType || '—'} />
           <KV k="Size" v={formatBytes(body.size || 0)} />
@@ -189,15 +192,16 @@ export default function ParsedAnalysis({ request }) {
               <KV k="JSON type" v={analysis.jsonShape.type} />
               {analysis.jsonShape.totalKeys ? <KV k="Total keys" v={String(analysis.jsonShape.totalKeys)} /> : null}
               {analysis.jsonShape.fields?.length ? (
-                <details className="pt-1.5 mt-1.5 border-t border-border/60">
-                  <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground select-none">
+                <details className="group/json pt-2 mt-1.5 border-t border-border/40">
+                  <summary className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground cursor-pointer hover:text-foreground select-none transition-colors duration-500 ease-spring">
+                    <span className="inline-block transition-transform duration-500 ease-spring group-open/json:rotate-90 text-foreground/70">▸</span>
                     JSON shape ({analysis.jsonShape.fields.length} field{analysis.jsonShape.fields.length === 1 ? '' : 's'})
                   </summary>
-                  <ScrollBlock as="ul" className="mt-1.5 space-y-1 text-[11px] font-mono max-h-40 p-2 rounded-md border border-border bg-muted/40">
+                  <ScrollBlock as="ul" className="mt-2 space-y-0.5 text-[11px] font-mono max-h-44 p-2.5 rounded-bezel-inner bg-black/[0.03] dark:bg-white/[0.03] ring-1 ring-black/[0.05] dark:ring-white/[0.05] anim-rise-2">
                     {analysis.jsonShape.fields.slice(0, 50).map((f, i) => (
-                      <li key={i} className="flex items-center gap-2">
+                      <li key={i} className="flex items-center gap-2 py-0.5">
                         <span className="text-foreground/90 whitespace-nowrap">{f.path}</span>
-                        <span className="ml-auto text-muted-foreground shrink-0 pl-2">{f.type}</span>
+                        <span className="ml-auto text-muted-foreground shrink-0 pl-2 tabular-nums">{f.type}</span>
                       </li>
                     ))}
                   </ScrollBlock>
@@ -207,8 +211,7 @@ export default function ParsedAnalysis({ request }) {
           ) : null}
         </Section>
 
-        {/* Timeline (last — keeps a comfortable gap to the panel bottom) */}
-        <Section icon={Clock} title="Timeline">
+        <Section key={`${animKey}-tl`} icon={Clock} title="Timeline" delay={8}>
           <ul className="space-y-1 text-[12px]">
             {(request.timeline || []).map((t, i) => (
               <li key={i} className="flex items-center gap-2 font-mono">
@@ -217,7 +220,7 @@ export default function ParsedAnalysis({ request }) {
               </li>
             ))}
           </ul>
-          <div className="pt-2 mt-2 border-t border-border/60 text-[11px] text-muted-foreground inline-flex items-center gap-1.5 tabular-nums">
+          <div className="pt-2 mt-2 border-t border-border/40 text-[11px] text-muted-foreground inline-flex items-center gap-1.5 tabular-nums">
             <Calendar className="h-3 w-3" />
             Total processing: <span className="text-foreground/90 font-mono">{request.processingMs ?? 0}ms</span>
           </div>
@@ -227,37 +230,70 @@ export default function ParsedAnalysis({ request }) {
   );
 }
 
-// Sub-components -------------------------------------------------------
-
-// Inner sections are framed boxes that live entirely inside the
-// "Parsed analysis" panel. The panel itself is the single scroll
-// surface (one vertical scrollbar on the right column); the
-// section cards are flat, no per-card scroll. Long values still
-// scroll horizontally inside <ScrollKV> / <ScrollBlock>, but the
-// column scrolls as a single unit vertically.
-function Section({ icon: Icon, title, children }) {
+// Placeholder shown when no request is selected. Lives inside the
+// same orb-bg wrapper so the glow is consistent with the loaded
+// state. Uses a shimmer bar to signal "ready, waiting".
+function AnalysisPlaceholder() {
   return (
-    <section className="rounded-md border border-border/60 bg-card/40 overflow-hidden min-w-0">
-      <header className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 bg-muted/30 shrink-0">
-        <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground leading-none">
-          {title}
-        </h3>
-      </header>
-      <div className="px-3 py-2.5 space-y-1 overflow-x-auto overflow-y-hidden">
-        {children}
+    <div className="h-full overflow-y-auto orb-bg">
+      <div className="px-4 py-6 text-sm flex flex-col items-center justify-center h-full text-center">
+        <div className="bezel-shell inline-flex p-3 mb-4">
+          <div className="bezel-core w-12 h-12 flex items-center justify-center rounded-bezel-inner">
+            <Sparkles className="h-5 w-5 text-primary animate-pulse-soft" />
+          </div>
+        </div>
+        <p className="text-[13px] text-foreground/90 font-display tracking-tight">No request selected</p>
+        <p className="text-[11.5px] text-muted-foreground mt-1.5 max-w-[220px] leading-relaxed">
+          Pick a request from the list to see the parsed analysis render in real time.
+        </p>
+        <div className="mt-5 w-32 h-1 rounded-full overflow-hidden bg-black/[0.06] dark:bg-white/[0.06] relative">
+          <div className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-primary/60 to-transparent animate-shimmer" />
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
 
+// Sub-components -------------------------------------------------------
+
+// Double-Bezel section card.
+//
+// DOM: <motion.bezel-shell>  ← outer tray (ring-1, p-1.5, bezel-outer radius)
+//        <bezel-core>        ← inner core (inset highlight, bezel-inner radius)
+//          <header>
+//          <body>
+//
+// `delay` controls the staggered entry animation (1..8). Re-mounting
+// the section (via a key change when request.id changes) replays the
+// rise animation so each new request gets its own reveal.
+function Section({ icon: Icon, title, children, delay = 1 }) {
+  const delayClass = `anim-rise-${Math.min(8, Math.max(1, delay))}`;
+  return (
+    <div className={`bezel-shell magnetic ${delayClass}`}>
+      <section className="bezel-core">
+        <header className="flex items-center gap-2 px-3.5 py-2.5 border-b border-border/40 bg-gradient-to-b from-white/[0.02] to-transparent">
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-[8px] bg-foreground/[0.06] dark:bg-white/[0.06] ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
+            <Icon className="h-3 w-3 text-primary" strokeWidth={1.5} />
+          </span>
+          <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground leading-none">
+            {title}
+          </h3>
+        </header>
+        <div className="px-3.5 py-3 space-y-1 overflow-x-auto overflow-y-hidden">
+          {children}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// KV: a label-value row. Short values are inline; long ones stay
+// inline too — but the chip/badge variants get the magnetic hover.
 function KV({ k, v, mono, badge, icon: Icon }) {
-  // Hide the row entirely if there's no meaningful value to show
-  // (cleaner than showing a sea of em-dashes).
   if (v == null || v === '' || v === '—') {
     return (
-      <div className="flex items-center gap-2 text-[12px] text-muted-foreground/60">
-        <span className="w-28 shrink-0">{k}</span>
+      <div className="flex items-center gap-2 text-[12px] text-muted-foreground/50">
+        <span className="w-[6.5rem] shrink-0 text-[11px] uppercase tracking-[0.08em]">{k}</span>
         <span className="text-[11px]">—</span>
       </div>
     );
@@ -265,12 +301,14 @@ function KV({ k, v, mono, badge, icon: Icon }) {
   const display = String(v);
   const isMono = mono || display.length > 40;
   return (
-    <div className="flex items-start gap-2 text-[12px]">
-      <span className="w-28 shrink-0 text-muted-foreground pt-0.5">{k}</span>
+    <div className="flex items-start gap-2 text-[12px] group/row">
+      <span className="w-[6.5rem] shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/80 pt-0.5 transition-colors duration-500 ease-spring group-hover/row:text-muted-foreground">
+        {k}
+      </span>
       <span className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
-        {Icon ? <Icon className="h-3 w-3 text-muted-foreground shrink-0" /> : null}
+        {Icon ? <Icon className="h-3 w-3 text-muted-foreground shrink-0" strokeWidth={1.5} /> : null}
         {badge ? (
-          <span className={`chip border-[hsl(var(--${badge})/0.4)] text-[hsl(var(--${badge}))] bg-[hsl(var(--${badge})/0.10)]`}>
+          <span className={`chip border-[hsl(var(--${badge})/0.4)] text-[hsl(var(--${badge}))] bg-[hsl(var(--${badge})/0.10)] magnetic`}>
             {display}
           </span>
         ) : (
@@ -283,15 +321,18 @@ function KV({ k, v, mono, badge, icon: Icon }) {
   );
 }
 
+// CoordRow — the only true CTA in the column. Renders the "view map"
+// link using the Button-in-Button pattern: an outer pill with a
+// nested icon circle that translates diagonally on hover.
 function CoordRow({ ip }) {
   const lat = fmtCoord(ip.latitude);
   const lon = fmtCoord(ip.longitude);
   if (!lat && !lon) return null;
   const url = mapUrl(ip);
   return (
-    <div className="flex items-start gap-2 text-[12px] pt-1.5 mt-1.5 border-t border-border/60">
-      <span className="w-28 shrink-0 text-muted-foreground inline-flex items-center gap-1.5 pt-0.5">
-        <MapPin className="h-3 w-3" /> Coords
+    <div className="flex items-start gap-2 text-[12px] pt-2 mt-1.5 border-t border-border/40">
+      <span className="w-[6.5rem] shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/80 inline-flex items-center gap-1.5 pt-0.5">
+        <MapPin className="h-3 w-3" strokeWidth={1.5} /> Coords
       </span>
       <span className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
         <span className="font-mono text-[11.5px] text-foreground tabular-nums">{lat || '—'}, {lon || '—'}</span>
@@ -300,9 +341,21 @@ function CoordRow({ ip }) {
             href={url}
             target="_blank"
             rel="noreferrer noopener"
-            className="chip border-[hsl(var(--primary)/0.4)] text-primary bg-[hsl(var(--primary)/0.10)] hover:bg-[hsl(var(--primary)/0.18)] transition-colors"
+            // Button-in-Button: outer pill + nested rounded-full
+            // icon circle that translates diagonally on hover.
+            className="group/map relative inline-flex items-center gap-1.5 pl-3 pr-1.5 h-7 rounded-island
+                       text-[11.5px] font-medium text-primary
+                       bg-primary/[0.10] ring-1 ring-primary/30
+                       hover:bg-primary/[0.18] hover:ring-primary/40
+                       active:scale-[0.98]
+                       transition-all duration-500 ease-spring"
           >
-            view map ↗
+            <span>view map</span>
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20
+                             transition-transform duration-500 ease-spring
+                             group-hover/map:translate-x-0.5 group-hover/map:-translate-y-[1px] group-hover/map:scale-105">
+              <ArrowUpRight className="h-3 w-3" strokeWidth={2} />
+            </span>
           </a>
         ) : null}
       </span>
@@ -317,16 +370,14 @@ function methodBadgeClass(method) {
   return 'method-other';
 }
 
-// ScrollKV: a KV row whose value is rendered in a horizontally
-// scrollable mini-region. The label stays put; the value sits in
-// a fixed-height scroll box that can pan sideways for long URLs,
-// ASN strings, UAs, header values, etc. Falls through to the
-// muted-dash placeholder if there's no value.
+// ScrollKV: KV row whose value sits in a horizontally scrollable
+// mini-region. Label stays put; value pans sideways for long URLs,
+// ASNs, header values, etc.
 function ScrollKV({ k, v }) {
   if (v == null || v === '' || v === '—') {
     return (
-      <div className="flex items-center gap-2 text-[12px] text-muted-foreground/60">
-        <span className="w-28 shrink-0">{k}</span>
+      <div className="flex items-center gap-2 text-[12px] text-muted-foreground/50">
+        <span className="w-[6.5rem] shrink-0 text-[11px] uppercase tracking-[0.08em]">{k}</span>
         <span className="text-[11px]">—</span>
       </div>
     );
@@ -334,9 +385,9 @@ function ScrollKV({ k, v }) {
   const display = String(v);
   return (
     <div className="flex items-start gap-2 text-[12px]">
-      <span className="w-28 shrink-0 text-muted-foreground pt-1.5">{k}</span>
-      <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden max-h-7 rounded-sm border border-transparent hover:border-border/60 transition-colors">
-        <div className="font-mono text-[11.5px] text-foreground whitespace-nowrap px-1.5 py-1">
+      <span className="w-[6.5rem] shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/80 pt-1.5">{k}</span>
+      <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden max-h-8 rounded-[8px] ring-1 ring-transparent hover:ring-border/60 transition-all duration-500 ease-spring">
+        <div className="font-mono text-[11.5px] text-foreground whitespace-nowrap px-2 py-1.5">
           {display}
         </div>
       </div>
@@ -344,16 +395,10 @@ function ScrollKV({ k, v }) {
   );
 }
 
-// ScrollBlock: a horizontally scrollable container for wide
-// content (raw UA, JSON shape, JWT claims). The element is the
-// scroll surface itself; we use the browser's intrinsic sizing
-// (no inner wrapper) so HTML validity is preserved for <pre> /
-// <ul>. Long content overflows horizontally rather than wrapping.
+// ScrollBlock: a horizontally scrollable container for wide content
+// (raw UA, JSON shape, JWT claims). Preserves HTML validity by
+// applying sizing classes directly to the underlying element.
 function ScrollBlock({ as: Tag = 'div', className = '', children, ...rest }) {
-  // For <pre> the content is text — whitespace is preserved by
-  // default and the pre grows to its content's intrinsic width.
-  // For <ul> we need to prevent the <li>s from wrapping so the
-  // list grows as wide as its widest item.
   const extra = Tag === 'pre' || Tag === 'code'
     ? 'min-w-max whitespace-pre'
     : Tag === 'ul' || Tag === 'ol'
