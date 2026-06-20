@@ -6,8 +6,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/r': { target: 'http://localhost:4000', changeOrigin: true },
-      '/api': { target: 'http://localhost:4000', changeOrigin: true },
+      // Trailing slash matters: '/r' would also match /robots.txt, /report.json,
+      // and any other path starting with 'r'. '/r/' is the correct matcher.
+      '/r/':   { target: 'http://localhost:4000', changeOrigin: true },
+      '/api':  { target: 'http://localhost:4000', changeOrigin: true },
       '/socket.io': { target: 'http://localhost:4000', ws: true, changeOrigin: true },
     },
   },

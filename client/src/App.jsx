@@ -5,7 +5,7 @@ import SearchBar from './components/SearchBar.jsx';
 import RequestList from './components/RequestList.jsx';
 import RequestDetails from './components/RequestDetails.jsx';
 import ParsedAnalysis from './components/ParsedAnalysis.jsx';
-import ResponseBuilder from './components/ResponseBuilder.jsx';
+import ResponseBuilder, { ResponsePanel } from './components/ResponseBuilder.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
 import {
   IconWebhook, IconHelp, IconBell, IconBellOff, IconActivity,
@@ -16,7 +16,7 @@ import {
 // Top-level page modes:
 //   'details'   — right pane shows RequestDetails (default)
 //   'analysis'  — right pane shows ParsedAnalysis
-//   'response'  — right pane shows ResponseBuilder
+//   'response'  — right pane shows ResponsePanel (mock response editor)
 // On desktop all three panes are visible at once (list | right pane).
 // On mobile the list and right pane swap (single-screen operation).
 const PANE_KEYS = [
@@ -64,34 +64,50 @@ export default function App() {
       />
 
       <main className="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-3 sm:px-4 pt-3 pb-20 md:pb-4 flex flex-col gap-3">
+        {/* Hidden H1 for SEO + screen readers. The visible "HookRick"
+            brand mark sits in the header above. */}
+        <h1 className="sr-only">
+          HookRick — live webhook inspector by NeXaric
+        </h1>
+
         {/* Endpoint bar — always visible */}
-        <EndpointCard
-          endpointId={store.endpointId}
-          onRegenerate={regenerate}
-          connected={store.connected}
-        />
+        <section aria-labelledby="endpoint-h">
+          <h2 id="endpoint-h" className="sr-only">Your endpoint URL</h2>
+          <EndpointCard
+            endpointId={store.endpointId}
+            onRegenerate={regenerate}
+            connected={store.connected}
+          />
+        </section>
 
         {/* Search bar (and storage toggle) */}
-        <div className="flex items-stretch gap-2">
-          <SearchBar
-            value={store.query}
-            onChange={store.setQuery}
-            storageMode={store.storageMode}
-            onStorageMode={store.switchStorageMode}
-            idbReady={store.idbReady}
-          />
-          {/* Response button lives in the toolbar on mobile too,
-              opens the same sheet */}
-          <div className="md:hidden">
-            <ResponseBuilder config={store.responseConfig} onChange={store.setResponseConfig} />
+        <section aria-labelledby="search-h">
+          <h2 id="search-h" className="sr-only">Filter and storage</h2>
+          <div className="flex items-stretch gap-2">
+            <SearchBar
+              value={store.query}
+              onChange={store.setQuery}
+              storageMode={store.storageMode}
+              onStorageMode={store.switchStorageMode}
+              idbReady={store.idbReady}
+            />
+            {/* Response button lives in the toolbar on mobile too,
+                opens the same sheet */}
+            <div className="md:hidden">
+              <ResponseBuilder config={store.responseConfig} onChange={store.setResponseConfig} />
+            </div>
           </div>
-        </div>
+        </section>
 
         {/* Desktop 2-pane: list (always visible) + right pane tabbed.
             Mobile: list OR right pane, swap via bottom tab bar. */}
         <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] gap-3">
           {/* List */}
-          <div className={`card min-h-0 ${mobileView === 'list' ? '' : 'hidden md:block'}`}>
+          <section
+            className={`card min-h-0 ${mobileView === 'list' ? '' : 'hidden md:block'}`}
+            aria-labelledby="requests-h"
+          >
+            <h2 id="requests-h" className="sr-only">Captured requests</h2>
             <RequestList
               requests={store.requests}
               activeId={store.activeId}
@@ -101,12 +117,14 @@ export default function App() {
               query={store.query}
               lastIncomingId={store.lastIncomingId}
             />
-          </div>
+          </section>
 
           {/* Right pane (Details / Analysis / Response) */}
-          <div
+          <section
             className={`card min-h-0 flex flex-col overflow-hidden ${mobileView === 'right' ? '' : 'hidden md:flex'}`}
+            aria-labelledby="details-h"
           >
+            <h2 id="details-h" className="sr-only">Request details</h2>
             {/* Pane tab strip */}
             <div className="px-3 sm:px-4 pt-2.5 pb-2 border-b border-[var(--line)] flex items-center gap-3 shrink-0">
               <div
@@ -148,8 +166,9 @@ export default function App() {
             <div className="flex-1 min-h-0 overflow-hidden">
               {pane === 'details'  ? <RequestDetails request={store.active} allRequests={store.requests} /> : null}
               {pane === 'analysis' ? <ParsedAnalysis request={store.active} /> : null}
+              {pane === 'response' ? <ResponsePanel config={store.responseConfig} onChange={store.setResponseConfig} /> : null}
             </div>
-          </div>
+          </section>
         </div>
       </main>
 
@@ -157,7 +176,7 @@ export default function App() {
           Two tabs: Requests / Details. The current pane (Details /
           Analysis / Response) is selected via the right pane tabs once
           the user is on the right side. */}
-      <nav className="md:hidden fixed bottom-3 inset-x-3 z-30">
+      <nav className="md:hidden fixed bottom-3 inset-x-3 z-30" aria-label="Mobile navigation">
         <div
           className="flex items-center gap-0.5 p-1 rounded-lg bg-[var(--surface)] border border-[var(--line)]"
           style={{ paddingBottom: 'calc(4px + env(safe-area-inset-bottom, 0px))' }}
@@ -195,17 +214,26 @@ function Header({ onHelp, theme, setTheme, notificationsOn, notificationPermissi
       <div className="max-w-[1400px] mx-auto px-3 sm:px-4 h-14 flex items-center gap-2 sm:gap-3">
         <a
           className="flex items-center gap-2.5 group"
-          href="/"
-          onClick={(e) => e.preventDefault()}
+          href="https://nexaric.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="HookRick by NeXaric — visit nexaric.com"
+          itemProp="url"
         >
           <div
-            className="h-8 w-8 rounded-md bg-[var(--ink)] text-[var(--canvas)] flex items-center justify-center"
+            className="h-8 w-8 rounded-md bg-[var(--ink)] text-[var(--canvas)] flex items-center justify-center shrink-0"
           >
             <IconWebhook size={16} strokeWidth={1.4} />
           </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[15px] font-semibold text-[var(--ink)] tracking-tight">hookrick</span>
-            <span className="text-[9.5px] uppercase tracking-[0.16em] text-[var(--ink-4)] font-medium">webhook inspector</span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="text-[15px] font-semibold text-[var(--ink)] tracking-tight whitespace-nowrap">
+              <span itemProp="name">HookRick</span>
+              <span className="text-[var(--ink-4)] font-normal"> by </span>
+              <span className="text-[var(--ink)]">NeXaric</span>
+            </span>
+            <span className="text-[9.5px] uppercase tracking-[0.16em] text-[var(--ink-4)] font-medium whitespace-nowrap">
+              Webhook inspector
+            </span>
           </div>
         </a>
 

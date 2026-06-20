@@ -1,17 +1,169 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- ============================================================
+         Primary meta
+         ============================================================ -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="format-detection" content="telephone=no, address=no, email=no" />
+
+    <!-- Canonical URL — prevents duplicate-content penalties -->
+    <link rel="canonical" href="https://hookrick.pages.dev/" />
+
+    <!-- Theme color adapts to the user's scheme (matches the inline script below) -->
     <meta name="theme-color" content="#FBFBFA" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0E0E0D" media="(prefers-color-scheme: dark)" />
-    <meta name="description" content="hookrick — instant webhook inspector. Drop a request at /r/your-id and watch it appear live. No signup, no database." />
-    <meta property="og:title" content="hookrick — instant webhook inspector" />
-    <meta property="og:description" content="Real-time webhook capture and inspection in your browser. No signup, no database." />
-    <title>hookrick — instant webhook inspector</title>
+    <meta name="msapplication-TileColor" content="#0E0E0D" />
 
-    <!-- Inter (body) + JetBrains Mono (code) — primary system. -->
+    <!-- ============================================================
+         App identity & PWA
+         ============================================================ -->
+    <meta name="application-name" content="HookRick" />
+    <meta name="apple-mobile-web-app-title" content="HookRick" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="generator" content="HookRick by NeXaric" />
+
+    <title>HookRick — Instant Webhook Inspector & Debugger | by NeXaric</title>
+    <meta name="description" content="HookRick is a free, zero-signup webhook inspector by NeXaric. Get a personal endpoint, fire any HTTP request, and watch the headers, body, query, and cookies appear live in your browser. Browser push notifications, mock responses, replay, share via QR." />
+    <meta name="keywords" content="webhook inspector, webhook tester, webhook debugger, webhook capture, http inspector, request bin, ngrok alternative, requestbin, mock response, push notification, browser alerts, NeXaric, Nexaric" />
+    <meta name="author" content="NeXaric" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="rating" content="general" />
+    <meta name="revisit-after" content="3 days" />
+    <link rel="author" href="https://nexaric.com" />
+    <link rel="publisher" href="https://nexaric.com" />
+
+    <!-- ============================================================
+         Open Graph (Facebook, LinkedIn, Slack, Discord, WhatsApp)
+         ============================================================ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="HookRick by NeXaric" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://hookrick.pages.dev/" />
+    <meta property="og:title" content="HookRick — Instant Webhook Inspector" />
+    <meta property="og:description" content="Drop a request at your private endpoint, watch it land live in your browser. Headers, body, query, cookies, mock responses, browser push alerts — no signup, no database." />
+    <meta property="og:image" content="https://hookrick.pages.dev/og-image.svg" />
+    <meta property="og:image:secure_url" content="https://hookrick.pages.dev/og-image.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="HookRick — instant webhook inspector. Live capture, parsed analysis, and browser push notifications by NeXaric." />
+
+    <!-- ============================================================
+         Twitter / X
+         ============================================================ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HookRick — Instant Webhook Inspector" />
+    <meta name="twitter:description" content="Drop a request, watch it land live. Headers, body, query, cookies, mock responses, browser push alerts — no signup, no database." />
+    <meta name="twitter:image" content="https://hookrick.pages.dev/og-image.svg" />
+    <meta name="twitter:image:alt" content="HookRick — instant webhook inspector. Live capture, parsed analysis, and browser push notifications by NeXaric." />
+
+    <!-- ============================================================
+         Favicons & PWA icons
+         ============================================================ -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- ============================================================
+         Structured data (JSON-LD) — Organization + WebApplication + FAQ
+         ============================================================ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://nexaric.com/#organization",
+          "name": "NeXaric",
+          "url": "https://nexaric.com",
+          "logo": "https://hookrick.pages.dev/favicon.svg",
+          "sameAs": []
+        },
+        {
+          "@type": "WebApplication",
+          "name": "HookRick",
+          "alternateName": "HookRick by NeXaric",
+          "url": "https://hookrick.pages.dev/",
+          "applicationCategory": "DeveloperApplication",
+          "applicationSubCategory": "Webhook Inspector",
+          "operatingSystem": "Any (browser-based)",
+          "browserRequirements": "Requires JavaScript. Requires a modern browser (Chrome, Edge, Firefox, Safari).",
+          "description": "HookRick is a free, zero-signup webhook inspector that gives you a personal endpoint and streams every request — headers, body, query, cookies — live to your browser. Mock custom responses, replay with one click, and get browser push notifications when a webhook arrives.",
+          "image": "https://hookrick.pages.dev/og-image.svg",
+          "screenshot": "https://hookrick.pages.dev/og-image.svg",
+          "featureList": [
+            "Live webhook capture over Server-Sent Events",
+            "Inspect headers, body, query parameters, cookies, and files",
+            "Parsed analysis (JSON, form-data, IP, user-agent)",
+            "Mock custom responses (status, headers, body)",
+            "Replay requests with curl, fetch, or PowerShell",
+            "Browser push notifications for new webhooks",
+            "QR code endpoint sharing",
+            "Single-page operation, mobile-optimized",
+            "LocalStorage and IndexedDB persistence",
+            "Auto-generated endpoint, no signup, no database"
+          ],
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "creator": { "@id": "https://nexaric.com/#organization" },
+          "publisher": { "@id": "https://nexaric.com/#organization" },
+          "inLanguage": "en"
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Do I need to create an account?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. HookRick auto-generates a personal endpoint on first load and stores it in your browser's localStorage. There is no signup, no email, no database — your endpoint lives only in your browser."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I send a webhook to HookRick?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Any HTTP method works: POST, GET, PUT, DELETE, PATCH. Copy the endpoint URL from the dashboard and send a request with curl, fetch, Postman, or your app's webhook config. It appears live in your browser within a second."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can HookRick return a custom response?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Open the Response tab to define a status code, custom headers, and a body. HookRick returns that response to the caller; if disabled, it passes through with a 200 OK."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is HookRick free?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. HookRick is free, open, and made by NeXaric. There are no usage limits beyond the per-endpoint storage cap of your browser."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- ============================================================
+         Fonts — Inter (body) + JetBrains Mono (code) + Newsreader (display)
+         ============================================================ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -26,7 +178,9 @@
       rel="stylesheet"
     />
 
-    <!-- Apply persisted theme + viewport-fit safe-area before React mounts. -->
+    <!-- ============================================================
+         Pre-paint theme apply (no FOUC)
+         ============================================================ -->
     <script>
       (function () {
         try {
@@ -50,7 +204,24 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Hidden, crawlable content for SEO crawlers that don't run JS.
+         Mirrors the JSON-LD description and the FAQ. Visible to AT. -->
+    <noscript>
+      <h1>HookRick — Instant Webhook Inspector by NeXaric</h1>
+      <p>
+        HookRick gives you a personal webhook endpoint the moment you open the page.
+        Send any HTTP request to it and watch the headers, body, query, and cookies
+        appear live in your browser. No signup, no database, no server to run.
+        Mock custom responses, replay requests, and get browser push notifications
+        when a new webhook arrives.
+      </p>
+      <p>
+        Made by <a href="https://nexaric.com">NeXaric</a>.
+        Visit <a href="https://nexaric.com">nexaric.com</a> for more tools.
+      </p>
+    </noscript>
+
+    <div id="root" role="application" aria-label="HookRick webhook inspector"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

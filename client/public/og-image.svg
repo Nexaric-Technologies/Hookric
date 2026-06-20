@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="title desc">
+  <title id="title">HookRick — Instant Webhook Inspector by NeXaric</title>
+  <desc id="desc">A premium dark-themed social card. HookRick logo, tagline, three feature pills, and the byline "Made by NeXaric".</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0E0E0D"/>
+      <stop offset="100%" stop-color="#161614"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F5F4F1"/>
+      <stop offset="100%" stop-color="#A8A89F"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F1F1D" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.55"/>
+
+  <!-- Top eyebrow -->
+  <g transform="translate(80, 90)" font-family="Inter, -apple-system, system-ui, sans-serif">
+    <rect x="0" y="0" width="10" height="10" rx="2" fill="#F5F4F1"/>
+    <text x="22" y="9" font-size="14" font-weight="600" letter-spacing="2.4" fill="#A8A89F">
+      WEBHOOK INSPECTOR · FREE · NO SIGNUP
+    </text>
+  </g>
+
+  <!-- Headline -->
+  <g transform="translate(80, 130)" font-family="Newsreader, Georgia, serif" fill="#F5F4F1">
+    <text x="0" y="120" font-size="128" font-weight="500" letter-spacing="-3">HookRick</text>
+  </g>
+
+  <!-- Subheadline -->
+  <g transform="translate(80, 295)" font-family="Inter, -apple-system, system-ui, sans-serif" fill="#C9C9C0">
+    <text x="0" y="0" font-size="34" font-weight="400">
+      Drop a request at your endpoint. Watch it land live.
+    </text>
+    <text x="0" y="46" font-size="34" font-weight="400">
+      Headers · body · query · cookies · mock response · push alerts.
+    </text>
+  </g>
+
+  <!-- Feature pills -->
+  <g transform="translate(80, 410)" font-family="Inter, -apple-system, system-ui, sans-serif">
+    <!-- Pill 1 -->
+    <g>
+      <rect x="0" y="0" width="172" height="44" rx="22" fill="#1F1F1D" stroke="#2A2A27" stroke-width="1"/>
+      <circle cx="22" cy="22" r="4" fill="#7DD87D"/>
+      <text x="40" y="28" font-size="15" font-weight="500" fill="#F5F4F1">Live capture</text>
+    </g>
+    <!-- Pill 2 -->
+    <g transform="translate(188, 0)">
+      <rect x="0" y="0" width="174" height="44" rx="22" fill="#1F1F1D" stroke="#2A2A27" stroke-width="1"/>
+      <circle cx="22" cy="22" r="4" fill="#9DBEFF"/>
+      <text x="40" y="28" font-size="15" font-weight="500" fill="#F5F4F1">Parsed analysis</text>
+    </g>
+    <!-- Pill 3 -->
+    <g transform="translate(378, 0)">
+      <rect x="0" y="0" width="190" height="44" rx="22" fill="#1F1F1D" stroke="#2A2A27" stroke-width="1"/>
+      <circle cx="22" cy="22" r="4" fill="#FFB35C"/>
+      <text x="40" y="28" font-size="15" font-weight="500" fill="#F5F4F1">Push notifications</text>
+    </g>
+    <!-- Pill 4 -->
+    <g transform="translate(584, 0)">
+      <rect x="0" y="0" width="170" height="44" rx="22" fill="#1F1F1D" stroke="#2A2A27" stroke-width="1"/>
+      <circle cx="22" cy="22" r="4" fill="#C49EFF"/>
+      <text x="40" y="28" font-size="15" font-weight="500" fill="#F5F4F1">Mock response</text>
+    </g>
+  </g>
+
+  <!-- Endpoint URL mock card -->
+  <g transform="translate(80, 488)">
+    <rect x="0" y="0" width="600" height="64" rx="10" fill="#1A1A18" stroke="#2A2A27"/>
+    <text x="22" y="38" font-family="JetBrains Mono, ui-monospace, monospace" font-size="16" fill="#7A7A72">
+      POST
+    </text>
+    <text x="76" y="38" font-family="JetBrains Mono, ui-monospace, monospace" font-size="16" fill="#F5F4F1">
+      https://hookrick.pages.dev/r/
+    </text>
+    <text x="76" y="38" font-family="JetBrains Mono, ui-monospace, monospace" font-size="16" fill="#C9C9C0" dx="345">
+      ●●●●●●●
+    </text>
+  </g>
+
+  <!-- Byline bottom-right -->
+  <g transform="translate(1120, 575)" font-family="Inter, -apple-system, system-ui, sans-serif" text-anchor="end" fill="#A8A89F">
+    <text x="0" y="0" font-size="14" font-weight="500" letter-spacing="0.5">
+      MADE BY
+    </text>
+    <text x="0" y="26" font-size="22" font-weight="600" fill="#F5F4F1" letter-spacing="-0.4">
+      NeXaric
+    </text>
+  </g>
+  <g transform="translate(1120, 540)" font-family="Inter, -apple-system, system-ui, sans-serif" text-anchor="end">
+    <text x="0" y="0" font-size="11" fill="#7A7A72">
+      nexaric.com
+    </text>
+  </g>
+</svg>

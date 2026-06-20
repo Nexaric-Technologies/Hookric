@@ -1,0 +1,51 @@
+{
+  "name": "HookRick by NeXaric",
+  "short_name": "HookRick",
+  "description": "Instant webhook inspector. Capture, inspect, and replay HTTP webhooks in your browser. No signup, no database.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0E0E0D",
+  "theme_color": "#0E0E0D",
+  "categories": ["developer", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.svg",
+      "sizes": "1200x630",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New endpoint",
+      "short_name": "Regenerate",
+      "description": "Generate a fresh personal endpoint",
+      "url": "/?action=regenerate"
+    }
+  ]
+}

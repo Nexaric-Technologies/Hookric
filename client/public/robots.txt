@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Endpoint URLs are per-user, secret, and contain no indexable content.
+# Block them from crawlers to avoid leaking personal endpoints in search results
+# and to keep the index clean.
+Disallow: /r/
+
+Sitemap: https://hookrick.pages.dev/sitemap.xml
