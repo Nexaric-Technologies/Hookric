@@ -6,6 +6,7 @@ import {
 import {
   IconCopy, IconCheck, IconDownload, IconFileText, IconCode, IconReplay,
   IconHash, IconQuery, IconCookie, IconFile, IconBrowser, IconImage, IconClock, IconActivity,
+  IconBody, IconHeaders,
 } from './Icon.jsx';
 
 const TABS = [

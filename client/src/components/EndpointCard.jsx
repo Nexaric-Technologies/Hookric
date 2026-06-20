@@ -69,9 +69,9 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
 
       {/* URL row */}
       <div className="flex flex-col sm:flex-row items-stretch gap-2">
-        <div className="flex-1 flex items-center gap-1.5 px-3 h-10 rounded-md border border-[var(--line)] bg-[var(--surface-2)] font-mono text-[12.5px] overflow-hidden min-w-0">
-          <span className="text-[var(--ink-4)] shrink-0 truncate">{urlPrefix}</span>
-          <span className="truncate text-[var(--ink)]">{endpointId}</span>
+        <div className="flex-1 min-w-0 flex items-center gap-1.5 px-3 h-10 rounded-md border border-[var(--line)] bg-[var(--surface-2)] font-mono text-[12.5px] overflow-hidden">
+          <span className="text-[var(--ink-4)] shrink truncate min-w-0">{urlPrefix}</span>
+          <span className="truncate text-[var(--ink)] min-w-0">{endpointId}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <button onClick={onCopy} title="Copy URL" className="btn btn-primary btn-sm sm:h-10 sm:px-3 flex-1 sm:flex-initial">
@@ -83,7 +83,7 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
             title="QR code"
             aria-label="Toggle QR code"
             aria-expanded={qrOpen}
-            className="btn btn-outline btn-icon"
+            className="btn btn-outline btn-icon shrink-0"
           >
             <IconQR size={16} />
           </button>
@@ -91,7 +91,7 @@ export default function EndpointCard({ endpointId, onRegenerate, connected }) {
             onClick={onRegen}
             title="Generate new endpoint"
             aria-label="Generate new endpoint"
-            className="btn btn-outline btn-icon"
+            className="btn btn-outline btn-icon shrink-0"
           >
             <IconRotate size={16} />
           </button>
