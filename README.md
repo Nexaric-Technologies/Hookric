@@ -22,7 +22,7 @@ No signup. No database. Edge-native.*
 
 <br/>
 
-<a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Nexaric-Technologies/Hookrick">
+<a href="https://deploy.workers.cloudflare.com/?url=https://github.com/Nexaric-Technologies/Hookric.git">
   <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" width="180"/>
 </a>
 
