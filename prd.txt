@@ -1,0 +1,517 @@
+# Product Requirements Document (PRD)
+
+## Product Name
+
+WebhookMirror
+
+## Vision
+
+Allow developers, agencies, automation builders, n8n users, Zapier users, WooCommerce users, WhatsApp API users, and SaaS developers to instantly create a unique webhook endpoint and inspect every incoming request in real time without requiring registration or database storage.
+
+The product should work immediately after opening the website.
+
+---
+
+# Target Users
+
+### Primary
+
+* n8n users
+* Zapier users
+* Make.com users
+* WooCommerce developers
+* API developers
+* SaaS founders
+* DevOps engineers
+
+### Secondary
+
+* Students learning APIs
+* QA testers
+* Support teams
+
+---
+
+# User Journey
+
+### Step 1
+
+User visits homepage.
+
+### Step 2
+
+System automatically generates:
+
+https://webhookmirror.com/r/9ks8x2ma
+
+### Step 3
+
+Page displays:
+
+* Endpoint URL
+* Copy button
+* QR Code
+
+### Step 4
+
+User sends webhook.
+
+### Step 5
+
+Requests instantly appear in browser.
+
+### Step 6
+
+User inspects:
+
+* Headers
+* Body
+* Query Parameters
+* Cookies
+* Files
+* Metadata
+
+No signup required.
+
+---
+
+# Request Capture Requirements
+
+For every request capture maximum possible information.
+
+## Basic Information
+
+* Unique Request ID
+* Timestamp
+* Processing Time
+* Request Method
+* URL
+* Original URL
+* Path
+* Host
+* Protocol
+* HTTP Version
+
+Example:
+
+Method: POST
+URL: /r/abc123
+Protocol: HTTPS
+HTTP Version: 1.1
+
+---
+
+## Network Information
+
+Capture:
+
+* Source IP
+* Forwarded IP
+* X-Forwarded-For
+* Remote Address
+* Country
+* Region
+* City
+* ASN
+* ISP
+
+Example:
+
+Country: India
+State: West Bengal
+City: Kolkata
+
+---
+
+## TLS Information
+
+Capture if available:
+
+* SSL Version
+* Cipher
+* TLS Version
+* Secure Connection
+
+---
+
+## Header Information
+
+Store ALL headers.
+
+Example:
+
+Authorization
+User-Agent
+Content-Type
+X-Hub-Signature
+X-Shopify-Topic
+X-WC-Webhook-ID
+
+Display searchable JSON.
+
+---
+
+## Query Parameters
+
+Capture:
+
+GET /webhook?id=100&status=paid
+
+Display:
+
+{
+"id":"100",
+"status":"paid"
+}
+
+---
+
+## Cookies
+
+Capture all cookies.
+
+Example:
+
+session_id
+auth_token
+tracking_id
+
+---
+
+## Raw Request Body
+
+Store exact request body.
+
+Example:
+
+Raw Text
+
+Raw JSON
+
+Raw XML
+
+Raw Form Data
+
+Raw Multipart
+
+User can toggle between:
+
+* Raw
+* Pretty JSON
+* Parsed
+
+---
+
+## JSON Analysis
+
+If body is JSON:
+
+Auto detect:
+
+* Total keys
+* Nested objects
+* Arrays
+* Value types
+
+Example:
+
+name => string
+amount => number
+products => array
+
+---
+
+## Form Data Analysis
+
+Detect:
+
+application/x-www-form-urlencoded
+
+multipart/form-data
+
+Display all fields.
+
+---
+
+## File Upload Capture
+
+Capture:
+
+* Filename
+* Extension
+* Size
+* MIME Type
+
+Preview:
+
+* Images
+* PDFs
+* Text Files
+
+Store in browser cache.
+
+---
+
+## Authentication Analysis
+
+Detect:
+
+Basic Auth
+
+Bearer Token
+
+API Key
+
+JWT
+
+Webhook Signature
+
+Display:
+
+Token Length
+JWT Claims
+Expiration
+
+Mask sensitive values.
+
+---
+
+## Webhook Signature Validation
+
+Detect:
+
+Stripe
+GitHub
+Shopify
+WooCommerce
+Meta
+Slack
+Telegram
+
+Show:
+
+Signature Present
+Signature Missing
+
+---
+
+## User Agent Analysis
+
+Display:
+
+Browser
+OS
+Device
+Bot Detection
+
+Example:
+
+Googlebot
+Postman
+n8n
+Zapier
+
+---
+
+## Timeline View
+
+Request Received
+Headers Parsed
+Body Parsed
+Displayed
+
+Milliseconds precision.
+
+---
+
+# Real-Time Features
+
+## Live Feed
+
+Incoming requests appear instantly.
+
+No refresh required.
+
+WebSocket powered.
+
+---
+
+## Request Replay
+
+Generate:
+
+cURL
+
+NodeJS
+
+PHP
+
+Python
+
+Axios
+
+Fetch
+
+Example:
+
+curl -X POST ...
+
+One-click copy.
+
+---
+
+## Response Builder
+
+User can define response.
+
+Example:
+
+Status: 200
+
+Body:
+
+{
+"success": true
+}
+
+Headers:
+
+Content-Type: application/json
+
+---
+
+## Mock API Mode
+
+Transform webhook URL into fake API endpoint.
+
+Examples:
+
+GET
+POST
+PUT
+DELETE
+
+Supported.
+
+---
+
+## Storage
+
+Default:
+
+Browser LocalStorage
+
+Limits:
+
+5 MB
+
+Optional:
+
+IndexedDB
+
+Limits:
+
+Hundreds of MB
+
+No database.
+
+---
+
+# Search Features
+
+Search by:
+
+* Header
+* Body
+* Method
+* Date
+* Request ID
+
+---
+
+# Export
+
+Export:
+
+* JSON
+* CSV
+* TXT
+
+Download all captured requests.
+
+---
+
+# Security
+
+Mask:
+
+Authorization
+API Keys
+Tokens
+Passwords
+
+Automatic redaction.
+
+---
+
+# UI Layout
+
+Left Panel
+
+* Request List
+
+Middle Panel
+
+* Request Details
+
+Right Panel
+
+* Parsed Analysis
+
+Responsive Mobile Layout.
+
+---
+
+# Future Premium Version
+
+* Team Sharing
+* Cloud Storage
+* Public URLs
+* Request History
+* Custom Domains
+* Permanent Endpoints
+* API Monitoring
+* Email Alerts
+* Slack Alerts
+
+---
+
+# Tech Stack
+
+Frontend
+
+* React
+* Vite
+* Tailwind
+* shadcn/ui
+
+Backend
+
+* NodeJS
+* Express
+
+Realtime
+
+* Socket.IO
+
+Storage
+
+* Browser LocalStorage
+* IndexedDB
+
+Deployment
+
+* Azure App Service
+* Azure Container Apps
+
+No database required for MVP.

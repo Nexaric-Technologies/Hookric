@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   nextcatch — shadcn-style theming
+   Tokens are HSL triplets (no `hsl(...)` wrapper) so Tailwind's
+   `hsl(var(--x) / <alpha-value>)` mapping works.
+--------------------------------------------------------------------------- */
+
+:root {
+  /* Light mode (white mode) */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 221 83% 53%;
+
+  /* Method badges — desaturated, premium feel */
+  --method-get: 160 60% 38%;
+  --method-post: 199 89% 48%;
+  --method-put: 35 92% 50%;
+  --method-patch: 35 92% 50%;
+  --method-delete: 0 72% 51%;
+  --method-other: 215 16% 47%;
+
+  --radius: 0.625rem;
+
+  /* JSON syntax colors (light) */
+  --json-key: 217 91% 50%;
+  --json-string: 160 60% 35%;
+  --json-number: 32 95% 36%;
+  --json-boolean: 280 65% 45%;
+  --json-null: 215 16% 47%;
+  --json-punct: 215 14% 65%;
+
+  --code-bg: 210 40% 98%;
+  --code-border: 214 32% 91%;
+
+  color-scheme: light;
+}
+
+.dark,
+[data-theme="dark"] {
+  /* Dark mode — premium midnight, slight blue tint */
+  --background: 222 47% 5%;
+  --foreground: 210 40% 98%;
+
+  --card: 222 47% 7%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222 47% 7%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+
+  --secondary: 217 33% 12%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217 33% 12%;
+  --muted-foreground: 215 20% 65%;
+
+  --accent: 217 33% 12%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 63% 50%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217 33% 14%;
+  --input: 217 33% 14%;
+  --ring: 217 91% 60%;
+
+  --method-get: 160 65% 50%;
+  --method-post: 199 89% 65%;
+  --method-put: 35 95% 60%;
+  --method-patch: 35 95% 60%;
+  --method-delete: 0 75% 60%;
+  --method-other: 215 20% 65%;
+
+  /* JSON syntax colors (dark) */
+  --json-key: 217 91% 70%;
+  --json-string: 160 65% 60%;
+  --json-number: 40 95% 65%;
+  --json-boolean: 295 80% 75%;
+  --json-null: 215 20% 65%;
+  --json-punct: 215 14% 50%;
+
+  --code-bg: 222 47% 6%;
+  --code-border: 217 33% 14%;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  * { @apply border-border; }
+  html, body, #root { height: 100%; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: content-box; }
+
+  ::selection { background: hsl(var(--primary) / 0.2); color: hsl(var(--foreground)); }
+
+  /* Focus ring used everywhere */
+  :focus-visible { outline: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Component primitives (shadcn-shaped, no shadcn dependency)
+--------------------------------------------------------------------------- */
+@layer components {
+  .font-display { font-family: 'Satoshi Variable', 'Satoshi', 'Inter', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
+
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-soft;
+  }
+  .surface-2 {
+    @apply rounded-md border bg-secondary/40 text-secondary-foreground;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
+           border border-transparent bg-secondary text-secondary-foreground
+           hover:bg-secondary/80 transition-colors
+           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
+           bg-primary text-primary-foreground border border-primary
+           hover:bg-primary/90 transition-colors
+           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
+           border border-input bg-background text-foreground
+           hover:bg-accent hover:text-accent-foreground transition-colors
+           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium
+           text-muted-foreground hover:text-foreground hover:bg-accent transition-colors
+           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-sm { @apply h-8 px-2.5; }
+  .btn-icon { @apply h-9 w-9; }
+  .btn-icon-sm { @apply h-8 w-8; }
+
+  .input {
+    @apply flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground
+           placeholder:text-muted-foreground
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background
+           disabled:cursor-not-allowed disabled:opacity-50 transition-colors;
+  }
+  .input-mono { @apply font-mono; }
+
+  .chip {
+    @apply inline-flex items-center gap-1 px-2 h-6 rounded-full text-[11px] font-medium border;
+  }
+
+  .tab {
+    @apply inline-flex items-center justify-center whitespace-nowrap h-9 px-3 rounded-md text-sm font-medium
+           text-muted-foreground hover:text-foreground hover:bg-accent transition-colors
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  .tab-active {
+    @apply bg-secondary text-secondary-foreground;
+  }
+
+  .kbd {
+    @apply inline-flex h-5 select-none items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground;
+  }
+
+  /* Code blocks */
+  .code {
+    @apply font-mono text-[12.5px] leading-[1.55] whitespace-pre;
+  }
+  .code-wrap {
+    @apply font-mono text-[12.5px] leading-[1.55] whitespace-pre-wrap break-words;
+  }
+
+  /* Segmented control (used for mobile tabs + storage mode) */
+  .segmented {
+    @apply inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-secondary border border-border;
+  }
+  .segmented-item {
+    @apply flex-1 inline-flex items-center justify-center h-8 px-3 rounded-md text-xs font-medium
+           text-muted-foreground hover:text-foreground transition-colors
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  .segmented-item-active {
+    @apply bg-background text-foreground shadow-soft;
+  }
+
+  /* Method color helpers — these are referenced by the badge component */
+  .method-badge {
+    @apply inline-flex items-center justify-center min-w-[3.25rem] h-6 px-2 rounded-md text-[10.5px] font-semibold tracking-wide border font-mono;
+  }
+
+  /* Subtle row hover for the request list */
+  .row-hover { @apply transition-colors; }
+  .row-hover:hover { @apply bg-accent/60; }
+
+  /* Modal/dialog overlay */
+  .overlay {
+    @apply fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in-fast;
+  }
+
+  /* JSON syntax tokens (theme-aware via variables) */
+  .json-key    { color: hsl(var(--json-key)); }
+  .json-string { color: hsl(var(--json-string)); }
+  .json-number { color: hsl(var(--json-number)); }
+  .json-boolean, .json-true, .json-false { color: hsl(var(--json-boolean)); }
+  .json-null   { color: hsl(var(--json-null)); }
+  .json-punct  { color: hsl(var(--json-punct)); }
+}
+
+/* Small utility tweaks for keyboard focus on icon-only buttons */
+button:focus-visible, a:focus-visible { outline: none; }
