@@ -16,7 +16,7 @@
     "deploy": "npm run deploy:worker && npm run deploy:client"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0",
+    "concurrently": "^10.0.3",
     "wrangler": "^4.0.0"
   }
 }
